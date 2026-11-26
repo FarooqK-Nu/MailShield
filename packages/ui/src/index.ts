@@ -1,2 +1,3 @@
-// Shared components (StatusBadge, EvidenceCard, VerdictCard) arrive in Phase 1.
-export {};
+export { StatusBadge } from './StatusBadge.tsx';
+export { EvidenceCard } from './EvidenceCard.tsx';
+export { VerdictCard } from './VerdictCard.tsx';

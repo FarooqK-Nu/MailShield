@@ -8,5 +8,16 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@mailshield/contracts": "*",
+    "lucide-react": "^1.81.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.3",
+    "react": "^19.3.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
   }
 }
