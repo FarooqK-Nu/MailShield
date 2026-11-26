@@ -1,26 +1,40 @@
-import { HealthResponse } from '@mailshield/contracts';
-import { StrictMode, useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { StrictMode, useCallback, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createClient, session } from './api/client.ts';
+import { PairingScreen } from './PairingScreen.tsx';
+import { Analyze } from './routes/Analyze.tsx';
 import './styles.css';
+import { useTheme } from './theme.ts';
 
 function App() {
-  const [service, setService] = useState('Checking local service…');
+  const [token, setToken] = useState(session.get);
+  const { dark, toggle } = useTheme();
+  const client = useMemo(() => (token ? createClient(token) : null), [token]);
 
-  useEffect(() => {
-    fetch('/api/v1/health')
-      .then(async (res) => HealthResponse.parse(await res.json()))
-      .then((health) => setService(`Local service ready (version ${health.version})`))
-      .catch(() => setService('Local service unavailable. Start it with: pnpm dev'));
+  const keep = useCallback((next: string | null) => {
+    session.set(next);
+    setToken(next);
   }, []);
+  const forget = useCallback(() => keep(null), [keep]);
 
   return (
-    <main className="mx-auto max-w-2xl p-8">
-      <h1 className="text-2xl font-semibold">MailShield</h1>
-      <p role="status" className="mt-4">
-        {service}
-      </p>
-      <p className="mt-2 text-sm opacity-70">Message analysis is not implemented yet.</p>
-    </main>
+    <div className="mx-auto max-w-3xl px-4 py-6">
+      <header className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">MailShield</h1>
+        <button type="button" className="rounded-md p-2" onClick={toggle}>
+          {dark ? <Sun aria-hidden className="size-5" /> : <Moon aria-hidden className="size-5" />}
+          <span className="sr-only">Switch to {dark ? 'light' : 'dark'} theme</span>
+        </button>
+      </header>
+      <main>
+        {client ? (
+          <Analyze client={client} onUnauthorized={forget} />
+        ) : (
+          <PairingScreen onPaired={keep} />
+        )}
+      </main>
+    </div>
   );
 }
 
