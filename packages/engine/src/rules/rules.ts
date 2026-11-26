@@ -132,11 +132,12 @@ function r3(ctx: RuleContext): Draft[] {
   return active(ctx).flatMap((c) =>
     c.lookalikes.map((l) => {
       const diff = l.diff
-        .map((d) =>
-          d.kind === 'removed'
-            ? `“${d.expected}” is missing`
-            : `“${d.observed}” (${d.observedCodePoints.join(' ')}) where ${c.displayName} has “${d.expected || 'nothing'}”`,
-        )
+        .map((d) => {
+          const shown = `“${d.observed}” (${d.observedCodePoints.join(', ')})`;
+          if (d.kind === 'removed') return `“${d.expected}” is missing`;
+          if (d.kind === 'inserted') return `${shown} is extra`;
+          return `${shown} instead of “${d.expected}”`;
+        })
         .join('; ');
       return {
         kind: l.strength,
