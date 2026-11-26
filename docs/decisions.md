@@ -10,12 +10,11 @@ Short records of changes to the plan in `context.md`, `architecture.md` and the 
 | A-3 | 2026-11-26 | npm workspaces replace pnpm (team choice). |
 | A-2 | 2026-11-26 | Spec items no phase covered (Settings page, header paste, demo loading, side panel quick actions, lab avatar and custom message) are now assigned in the roadmap. |
 
-## Proposed — awaiting team approval
+## Approved proposals
 
-The code for P-1, P-2 and P-6 is already in place and can be reverted. Approved items should
-be copied into `architecture.md`.
+Approved 2026-11-26 and copied into `context.md` and `architecture.md`.
 
-| ID | Proposal | Reason |
+| ID | Decision | Reason |
 |---|---|---|
 | P-1 | Allow `_dmarc.<single label>` in DNS name validation. `architecture.md` §3.4 rejects single-label names. | The RFC 9989 tree walk queries names such as `_dmarc.com`; rejecting them breaks discovery. |
 | P-2 | Enforce package boundaries with ESLint's built-in `no-restricted-imports` instead of `import/no-restricted-paths` (§2). | No extra plugin or workspace resolver setup. It matches import names, so a deep relative path could slip through. |

@@ -42,7 +42,7 @@ The core idea to defend in the viva:
 | Concern | Choice | Notes |
 |---|---|---|
 | Runtime | Node.js 24 LTS (or the current LTS) | `node:crypto`, `node:dns/promises`, `X509Certificate`. |
-| Language/build | TypeScript (strict), `tsx` for dev, `tsup` for building packages | ESM throughout. |
+| Language/build | TypeScript 6.0 (strict; held below 7 until lint tooling supports it), `tsx` for dev, `tsup` for building packages | ESM throughout. |
 | Monorepo | npm workspaces | `apps/*`, `packages/*`. |
 | HTTP server | Express 5 + `cors`, `express-rate-limit`, `pino-http`, own Zod validation middleware | Binds `127.0.0.1` only. `express.raw()` receives message bytes. |
 | Validation/contracts | Zod | Shared by server, web, extension. |

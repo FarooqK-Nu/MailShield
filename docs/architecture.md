@@ -87,14 +87,15 @@ mailshield/
 │  ├─ eml/{dev,heldout}/*.eml
 │  ├─ dns/*.json                # fixture DNS zones
 │  ├─ labels/*.json             # expected verdict/findings per fixture
-│  └─ keys/                     # TEST-ONLY keys, clearly named
+│  ├─ keys/                     # TEST-ONLY keys, clearly named
+│  └─ smime/                    # test certificates and a signed message, no private keys
 ├─ tools/
 │  ├─ gen-fixtures.ts           # regenerates signed fixtures deterministically
 │  └─ evaluate.ts               # CLI: run engine over fixtures → metrics JSON
 └─ docs/                        # threat-model.md, api.md, decisions.md, test-report.md, demo.md
 ```
 
-**Dependency direction (enforced with ESLint `import/no-restricted-paths`):**
+**Dependency direction (enforced with ESLint `no-restricted-imports`, matching import names, P-2):**
 
 ```mermaid
 flowchart BT
@@ -189,7 +190,7 @@ interface DnsResolver {
 }
 ```
 
-- `ValidatedDnsName` is a branded type that can only be created by `validateAuthName()`. It accepts only `<sel>._domainkey.<domain>`, `_dmarc.<domain>` and SPF-target domains, checks LDH labels and length, and rejects IP literals and single-label names.
+- `ValidatedDnsName` is a branded type that can only be created by `validateAuthName()`. It accepts only `<sel>._domainkey.<domain>`, `_dmarc.<domain>` and SPF-target domains, checks LDH labels and length, and rejects IP literals and single-label domains, except under `_dmarc.` where the RFC 9989 tree walk queries up to the TLD (P-1).
 - `LiveResolver`: `node:dns/promises` `Resolver` with a 3 s timeout and 2 tries, TTL-aware `lru-cache`, and a per-analysis lookup budget (e.g. ≤ 20 queries).
 - `FixtureResolver` (in `packages/lab`): answers from `fixtures/dns/*.json`; unknown names give `nxdomain`. Can simulate `timeout`.
 - Adapter to `mailauth`: its `resolver(name, rrtype)` option is wrapped so that every query passes through validation and the budget. **(verify P0: mailauth resolver signature and error-code expectations.)**
@@ -199,7 +200,7 @@ interface DnsResolver {
 1. Collect all `DKIM-Signature` headers from the raw reader and parse tags (`v a b bh c d h i l q s t x`) for display.
 2. Call `mailauth`'s `dkimVerify(raw, { resolver })` once. It verifies every signature. **(verify P0: per-signature output fields such as status, body hash comparison and public key.)**
 3. For each signature produce `SignatureEvidence`:
-   - `status` from the library (`pass`/`fail`/`neutral`/`temperror`/`permerror`), mapped to our vocabulary.
+   - `status` from the library (`pass`/`fail`/`neutral`/`temperror`/`permerror`), mapped to our vocabulary. mailauth stays in its default lenient mode; its `neutral` result with "body hash did not verify" maps to `fail` (P-3).
    - `failureStage`: `dns` | `key_parse` | `body_hash` | `header_signature` | `expired` | `policy`, derived from library comments and our own checks (we recompute nothing cryptographic ourselves).
    - `coverage`: signed header list vs present headers. Important headers that are unsigned (`Subject`, `Reply-To`, `To`) are flagged. `l=` gives partial-body coverage in bytes.
    - `key`: type, bit size, `key_fingerprint` (SPKI DER SHA-256), `t=y` testing flag.
@@ -226,7 +227,7 @@ interface DnsResolver {
 
 ### 3.8 Identity and domain analysis (`identity/`)
 
-- `domain.ts`: `tldts.parse()` gives `{hostname, domain (registrable), subdomain, publicSuffix}`. Both Unicode and Punycode forms are kept. Matching is `registrable === approved || hostname endsWith '.' + approved` (label boundary) **only when** the registry entry allows subdomains.
+- `domain.ts`: `tldts.parse()` with `allowPrivateDomains: true` (P-4) gives `{hostname, domain (registrable), subdomain, publicSuffix}`. Both Unicode and Punycode forms are kept. Matching is `registrable === approved || hostname endsWith '.' + approved` (label boundary) **only when** the registry entry allows subdomains.
 - `confusables.ts`: NFD → map each code point through `confusables.txt` → NFD gives the skeleton. Script detection via `\p{Script=...}` regex for mixed-script flags. Legitimate single-script IDNs are not penalized.
 - `similarity.ts`: OSA/Damerau distance on the registrable label (without the TLD), with the threshold scaled by length (≤1 for ≤6 chars, ≤2 otherwise), plus token comparison (`micros0ft-support` → tokens).
 - `matcher.ts`: claimed identity = best registry match on display-name/alias (normalized: case-fold, NFKC, whitespace and punctuation collapsed) **or** on domain. Returns candidates with reasons; never more than a top-N against the registry, so no global database is needed.
