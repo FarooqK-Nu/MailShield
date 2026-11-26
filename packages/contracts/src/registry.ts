@@ -91,8 +91,24 @@ export const IdentityInput = z.strictObject({
 });
 export type IdentityInput = z.input<typeof IdentityInput>;
 
-/** Fields left out are unchanged; lists given replace the stored list. */
-export const IdentityPatch = IdentityInput.omit({ kind: true }).partial();
+/**
+ * Fields left out are unchanged; lists given replace the stored list. Written out without
+ * defaults, because `IdentityInput.partial()` would still fill them in and reset fields.
+ */
+export const IdentityPatch = z.strictObject({
+  displayName: Text(200).optional(),
+  trustState: TrustState.optional(),
+  provenanceUrl: z
+    .url({ protocol: /^https?$/ })
+    .max(2000)
+    .nullable()
+    .optional(),
+  notes: z.string().max(4000).nullable().optional(),
+  lastReviewed: z.iso.datetime().nullable().optional(),
+  aliases: z.array(Text(200)).max(50).optional(),
+  domains: z.array(ApprovedDomainInput).max(50).optional(),
+  addresses: z.array(z.email().max(320)).max(50).optional(),
+});
 export type IdentityPatch = z.input<typeof IdentityPatch>;
 
 export const IdentityList = z.object({ identities: z.array(Identity) });
