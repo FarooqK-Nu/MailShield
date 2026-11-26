@@ -1,0 +1,17 @@
+{
+  "id": "missing-dns-key",
+  "title": "Public key no longer published",
+  "description": "A signed message whose selector has no DNS record.",
+  "dns": "acme-no-key.json",
+  "eml": "dev/missing-dns-key.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "missing",
+        "failureStage": "dns"
+      }
+    ]
+  }
+}
