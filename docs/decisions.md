@@ -7,6 +7,7 @@ Short records of changes to the plan in `context.md`, `architecture.md` and the 
 | ID | Date | Decision |
 |---|---|---|
 | A-1 | 2026-11-26 | Express 5 replaces Fastify (team choice). |
+| A-3 | 2026-11-26 | npm workspaces replace pnpm (team choice). |
 | A-2 | 2026-11-26 | Spec items no phase covered (Settings page, header paste, demo loading, side panel quick actions, lab avatar and custom message) are now assigned in the roadmap. |
 
 ## Proposed — awaiting team approval

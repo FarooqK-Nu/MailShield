@@ -1,7 +1,7 @@
 # Phase 0 — Spike results
 
 Run on 2026-11-26: Windows 11, Node.js 24.13.1, OpenSSL 3.5.4, pnpm 11.29.0.
-Exact library versions are pinned in `pnpm-lock.yaml`.
+The project has since moved to npm; exact versions are pinned in `package-lock.json`.
 
 ## Exit criteria
 
@@ -68,7 +68,7 @@ revocation. The test splitter is spike code only.
 
 - TypeScript is held at 6.0: `typescript-eslint` 8.74 does not support TypeScript 7.
 - `@crxjs/vite-plugin` 3.0.0 builds the MV3 extension with Vite 8.
-- `pnpm audit`: no known vulnerabilities.
+- `npm audit`: no known vulnerabilities.
 
 ## OAuth spike — steps to finish
 
@@ -78,7 +78,7 @@ revocation. The test splitter is spike code only.
 3. Create an OAuth client of type **Chrome Extension** with item ID
    `oijpcmifakangkecaplidfpgjhhidbop`.
 4. Put the client ID in `apps/extension/.env.local` as `VITE_GOOGLE_CLIENT_ID=...`.
-5. `pnpm build`, then load `apps/extension/dist` unpacked in Chrome (signed in to the test
+5. `npm run build`, then load `apps/extension/dist` unpacked in Chrome (signed in to the test
    account's profile).
 6. Click the MailShield icon, then **Connect and test**. Success shows the byte size of one
    raw message. Record the outcome here.
@@ -86,5 +86,5 @@ revocation. The test splitter is spike code only.
 ## Real `.eml` check — steps to finish
 
 In Gmail: open a message, three-dot menu, **Show original**, **Download original**. Save it
-under `private/` (ignored by git) and run `pnpm spike:eml private/<file>.eml`. Record the
+under `private/` (ignored by git) and run `npm run spike:eml -- private/<file>.eml`. Record the
 result here without addresses or content.

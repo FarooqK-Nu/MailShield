@@ -45,12 +45,12 @@ gantt
 
 | Member A (security) | Member B (application) |
 |---|---|
-| Spike `mailauth`: verify a real Gmail-downloaded `.eml` and a self-signed fixture; record the exact per-signature output fields, the resolver signature, error codes, and DMARC org-domain method (PSL vs RFC 9989 tree walk) | Create the pnpm monorepo: `apps/{server,web,extension}`, `packages/{contracts,engine,lab,ui}`, shared tsconfig, ESLint (with package-boundary rule), Prettier, Vitest, root scripts |
+| Spike `mailauth`: verify a real Gmail-downloaded `.eml` and a self-signed fixture; record the exact per-signature output fields, the resolver signature, error codes, and DMARC org-domain method (PSL vs RFC 9989 tree walk) | Create the npm workspaces monorepo: `apps/{server,web,extension}`, `packages/{contracts,engine,lab,ui}`, shared tsconfig, ESLint (with package-boundary rule), Prettier, Vitest, root scripts |
 | Spike `pkijs`: verify an OpenSSL-produced S/MIME signed message, check chain against a custom root | Spike OAuth: Google Cloud project, Gmail API enabled, consent screen in *Testing*, Chrome-extension OAuth client bound to a fixed manifest `key`; `chrome.identity.getAuthToken` + `messages.get?format=raw` on a test account |
 | Confirm `tldts`, `confusables.txt` data source/version, and `dns/promises` timeout behaviour | Scaffold Vite React app + Tailwind + Radix; scaffold MV3 side panel with crxjs |
 | Draft `docs/threat-model.md` (assets, actors, trust boundaries) | Set up CI (GitHub Actions): typecheck, lint, test |
 
-**Deliverables:** `docs/spikes.md` (findings, library versions pinned, any gaps), running `pnpm dev`, CI green, `docs/decisions.md` started.
+**Deliverables:** `docs/spikes.md` (findings, library versions pinned, any gaps), running `npm run dev`, CI green, `docs/decisions.md` started.
 **Exit criteria:**
 - [ ] `mailauth` verifies a real DKIM signature through **our** resolver wrapper.
 - [ ] OAuth spike fetched one raw message, **or** the exact blocker is documented and the Show-original fallback is confirmed as the demo path.
@@ -202,7 +202,7 @@ gantt
 **Hardening (joint)**
 - Walk every row of the acceptance table in `MailShield_context.md` §18 and every invariant in `context.md` §8; each maps to a passing test.
 - Fuzz the parser with malformed MIME / deep nesting / huge headers (bounded time and memory).
-- Dependency audit (`pnpm audit`), permission review of the manifest, UI copy review (no “safe”, no accusations).
+- Dependency audit (`npm audit`), permission review of the manifest, UI copy review (no “safe”, no accusations).
 - Accessibility pass: keyboard navigation, focus rings, contrast, reduced motion.
 
 **Delivery**

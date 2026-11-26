@@ -36,7 +36,6 @@ flowchart LR
 ```text
 mailshield/
 ├─ package.json                 # root scripts: dev, build, test, lint, typecheck, eval
-├─ pnpm-workspace.yaml
 ├─ tsconfig.base.json
 ├─ apps/
 │  ├─ server/
@@ -416,7 +415,7 @@ Fixtures are generated **deterministically** by `tools/gen-fixtures.ts`, using a
 
 ## 9. Runtime and deployment
 
-- `pnpm dev` runs the server (`tsx watch`, `127.0.0.1:8787`), the web app (Vite `5173`) and the extension (Vite + crxjs, loaded unpacked from `apps/extension/dist`).
+- `npm run dev` runs the server (`tsx watch`, `127.0.0.1:8787`), the web app (Vite `5173`) and the extension (Vite + crxjs, loaded unpacked from `apps/extension/dist`).
 - `.env.example`: `PORT`, `ALLOWED_ORIGINS`, `EXTENSION_ID`, `DB_PATH`, `DNS_TIMEOUT_MS`, `RETENTION=off`. It contains no secrets. The OAuth client ID goes in the manifest; it is not a secret, but it is kept out of git if the team prefers (`manifest.local.json`).
 - Optional `docker compose up` runs the server only. The extension and Gmail OAuth always run in the user's Chrome.
 
