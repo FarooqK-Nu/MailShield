@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=bulk-mailer.example; h=Date: To: Subject: From; q=dns/txt; s=s1;
+ t=1780308000; bh=3qDuzyrsa4aOopcmhxhzZdKsN46ul76CvdpRC6I9hbs=;
+ b=ARZ0Vs6K6G4Pq5LmRR+aT84yKnn4qug+eHg0pDgOEI4LaArjkHxwjcpwp0Yi6uf0GW71EvYQm
+ pMRuBwnvf4hHosu080mqGRIZRrmE/+Ot7q1fm6bXsiOLkzXdT/UFsehkanCAXRqk8fxV/cH4hNr
+ xkTR7nmA9uUiLxBz6p6xxH+28Qrlup+Z459uaK23hHr2bRCpgaMCarD8BAJIXcCXGi5HEL+xfgV
+ 93OulDNgTd9sfdcpKA4xfkFfUbynsg5pvan6IdV49rzA9bsK+MyN+jQeUq4omuVPZ8doS3w4i5y
+ GIVJVO/HCaVL0dJLmVnhbBIBk0/peDYqyFTRkuaokD4w==
+From: Acme Billing <billing@acme.example>
+Subject: Invoice overdue
+Message-ID: <invoice-7@bulk-mailer.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Your Acme invoice is overdue. Pay today to avoid suspension.

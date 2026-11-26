@@ -1,0 +1,22 @@
+{
+  "id": "multi-signature",
+  "title": "Two signatures",
+  "description": "Signed by Acme and by its mail provider acme-mail.example.",
+  "dns": "acme.json",
+  "eml": "dev/multi-signature.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      },
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
+ bh=4LWeRcDPLfY5KCPqPT+kRIPl36QPT0pZIA/B/oY4QfU=;
+ b=nigdGLqgOg/ehdz5WJeGG0/v5+TUkwlJFsG92oDJDh+RAZ+wBViAv/DdiFUykvm9JImd/o2Dc
+ 0jhqOfrZUaj/t4TusnpFV5YDYhlFF6PvpFMg1YoV34vRPN/StSCTyGnmTM8ApS3e/yqky4+B6jH
+ ILJciVkR9yjW44POPsKrnoyp46nbDFaGthn6QJjz8h684z3bCleb03+PCf/dZy1DMmIm5kMVvGn
+ hBzAUTGZM/ZuSFAcGlCq1gdp9DN2ql/c/IQMbVACYVSfXIjhL+HIGvHqj667e3zzngnNf55lFIr
+ 3mrw+MLyR8v8NWdOCZGgvo2HENxGI3S61qyFfdNTCuXA==
+From: Acme Support <support@acme.example>
+Subject: Sign in to review a payment
+Message-ID: <signin-3@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<p>Review the payment at <a href="https://acme-login.example/session">https://acme.example/account</a>.</p>

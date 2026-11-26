@@ -1,3 +1,4 @@
 {
-  "s1._domainkey.acme.example": "TIMEOUT"
+  "s1._domainkey.acme.example": "TIMEOUT",
+  "_dmarc.acme.example": "v=DMARC1; p=reject"
 }

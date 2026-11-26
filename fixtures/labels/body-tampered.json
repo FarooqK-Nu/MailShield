@@ -12,6 +12,10 @@
         "status": "fail",
         "failureStage": "body_hash"
       }
+    ],
+    "rules": [
+      "R6",
+      "R9"
     ]
   }
 }

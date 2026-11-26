@@ -1,0 +1,22 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: To: Subject: From; l=20; q=dns/txt; s=s1; t=1780308000;
+ bh=BBJ+bbyuqYYMQNeSBFA0Xr9jLxj5HODq0cI71Rm+Eh4=;
+ b=WPA3NY0mf7CFrbGJXGu9nF4T2qI3XACZ1WT80WzSvH1cX45SNlFtQSJNbHhHIm0n2ZCgH+hia
+ P0R1uYMDtM+ngyWfVG0sSu/l2exYw+5jHY5TCAhg5u8753CwLc3ULEA0zL+X3pRO0YT9cfZ3eJG
+ qe2vLvD/JWeOB/I2apM+BoZ57IMNrm0BwD3VgkN00ePxuJ7CQ+DmdE2gtsO9aFxG49XgqM5vTy3
+ 4npHEknspkKqIYBYrafwoyam7FK+8DxugxM85ByRzNFCiv/ZfTUJCM2p10T5sJ2WBpc88xiiKpR
+ Oq3H9STCcmMvw9ocAnRgK7F7hszmAFl6e92tFKWVk4HQ==
+From: Acme Support <support@acme.example>
+Subject: Your quarterly statement
+Message-ID: <statement-1@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your quarterly statement is ready in your Acme account.
+
+Acme Support
+Text added after signing.

@@ -1,0 +1,18 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: To: Subject: Reply-To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=GNyOIQFDLHhI5gvpWNRSwBkJMBOv1Ww0fT5ZuCnywtY=;
+ b=X0L//uHLUAK13P/u07vxFQ7c5QwpQtjekv5mSH6X1dxwcOFzN1PZEwlbEoBGxmOmxp7RZ8xwf
+ Y5Pjf1+G8DrVe8XNQBVwZ1rFglGpydVc+DuJa9aV1SlFPlzmy/rPn5Ppnddv5SaXjlBZsondfci
+ m1i7yceMecNUL9NBUzp9KQHTgxsqE4XRffIhn0IJAmyY2ilC19bomvSJol0s3uzJ5YY4qPrYt8Z
+ SDT9Bwz4I9qCh/DYxtOA7+f5gXQfz0Q1ge6kjP2pDY+gnZYoZd4Dy9itTvC8qG2IO/i7S598P6A
+ 2r1oSrevYOcqZii8voR0LO8oZpKVwTXB3gd/afCsMUnA==
+From: Acme Support <support@acme.example>
+Reply-To: Acme Accounts <accounts@payhelp.example>
+Subject: Update your payment details
+Message-ID: <payment-2@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Please reply with your new payment details.
