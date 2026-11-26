@@ -28,18 +28,19 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 | Threat | Control | Status |
 |---|---|---|
 | DNS rebinding to the local service | Host allowlist; bind `127.0.0.1` | Done |
-| Cross-origin web page calls the service | Origin allowlist and pairing token (CORS is not authentication) | Phase 1 |
+| Cross-origin web page calls the service | Origin allowlist and pairing token (CORS is not authentication) | Done |
 | Token leaves the extension | Service API has no token field; network test | Phase 4 |
 | Forged `Authentication-Results` | Receiver results trusted only for live Gmail retrieval (3) | Phase 2/4 |
 | Message-controlled DNS names probe internal hosts | Validated auth names, TXT only, lookup budget | Done (SPF names later) |
-| Slow or silent DNS stalls analysis | Per-query deadline | Done; per-analysis time limit Phase 1 |
-| Oversized or deeply nested MIME | Size, depth, part and header limits (11) | Phase 1 |
+| Slow or silent DNS stalls analysis | Per-query deadline, 10 s per analysis | Done |
+| Oversized or deeply nested MIME | Size, depth, part and header limits; compressed request bodies refused (11) | Done |
 | Active content or tracking pixels in preview | Sanitize, sandboxed iframe, no remote loads (5) | Phase 3 |
-| Content or secrets in logs | Redacting logger and log-capture test (6) | Phase 1 |
+| Content or secrets in logs | Redacting logger and log-capture test (6) | Done |
 | Lookalike or confusable domain | Boundary matching, UTS #39 skeletons (4) | Phase 2 |
-| Lab trust leaks into live analysis | Separate package, trust store and resolver (7) | Import rule done; runtime check Phase 5 |
+| Lab trust leaks into live analysis | Separate package, trust store and resolver; clients cannot claim lab or fixture sources (7) | Import rule and route test done; runtime check Phase 5 |
+| Pairing code guessed | 8 digits, single use, replaced after 5 wrong tries, 10 tries per minute; tokens stored as hashes | Done |
 | Real mail committed to git | `private/` ignored | Done |
-| Vulnerable dependency | Lockfile, pnpm supply-chain checks, `pnpm audit` | Audit run once; add to hardening |
+| Vulnerable dependency | Lockfile, `npm audit` | Audit clean; add to CI in hardening |
 
 ## Accepted limitations
 
