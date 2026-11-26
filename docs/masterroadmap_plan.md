@@ -52,8 +52,8 @@ gantt
 
 **Deliverables:** `docs/spikes.md` (findings, library versions pinned, any gaps), running `npm run dev`, CI green, `docs/decisions.md` started.
 **Exit criteria:**
-- [x] `mailauth` verifies a real DKIM signature through **our** resolver wrapper (locally signed; a real Gmail message is still to be checked).
-- [ ] OAuth spike fetched one raw message, **or** the exact blocker is documented and the Show-original fallback is confirmed as the demo path.
+- [x] `mailauth` verifies a real DKIM signature through **our** resolver wrapper (locally signed and a real Gmail message).
+- [x] OAuth spike fetched one raw message, **or** the exact blocker is documented and the Show-original fallback is confirmed as the demo path.
 - [x] Every “(verify P0)” item in `architecture.md` is answered.
 
 **Risk gate:** if `mailauth` can't take a custom resolver or lacks per-signature results, the fallback is a thin wrapper over its lower-level DKIM verifier, or the team re-decides the library (record an ADR). Don't proceed without this.
@@ -76,7 +76,7 @@ gantt
 
 **Deliverables:** upload an `.eml` in the dashboard and see each DKIM signature with real status, domain, selector, fingerprint and coverage.
 **Exit criteria:**
-- [ ] A real Gmail-downloaded `.eml` shows DKIM `pass` (when its key is still published).
+- [x] A real Gmail-downloaded `.eml` shows DKIM `pass` (when its key is still published).
 - [x] The tampered fixture shows `fail` at the body-hash stage.
 - [x] Unsigned → `missing`; DNS timeout → `temporary_error`. No fake pass anywhere.
 - [x] Server rejects wrong Host, wrong Origin, missing token, and bodies over 10 MiB (tests).

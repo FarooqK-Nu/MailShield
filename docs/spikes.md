@@ -8,8 +8,8 @@ The project has since moved to npm; exact versions are pinned in `package-lock.j
 | Criterion | Status |
 |---|---|
 | `mailauth` verifies a DKIM signature through our resolver wrapper | **Met** with locally signed messages (`packages/lab/test/dkim.spike.test.ts`) |
-| Real Gmail-downloaded `.eml` checked (Member A spike task) | **Pending** — needs a message from a team member |
-| OAuth spike fetched one raw message, or blocker documented | **Pending** — code builds; needs a Google Cloud client ID |
+| Real Gmail-downloaded `.eml` checked (Member A spike task) | **Met** — DKIM `pass` on a real message (see below) |
+| OAuth spike fetched one raw message, or blocker documented | **Met** — one raw message fetched (see below) |
 | Every "(verify P0)" item answered | **Met**, below |
 | CI green | **Pending** — workflow written, not yet run on GitHub |
 
@@ -70,7 +70,7 @@ revocation. The test splitter is spike code only.
 - `@crxjs/vite-plugin` 3.0.0 builds the MV3 extension with Vite 8.
 - `npm audit`: no known vulnerabilities.
 
-## OAuth spike — steps to finish
+## OAuth spike — (COMPLETED)
 
 1. In the Google Cloud console, create a project and enable the **Gmail API**.
 2. Configure the consent screen: *External*, publishing status *Testing*, add your test
@@ -83,8 +83,23 @@ revocation. The test splitter is spike code only.
 6. Click the MailShield icon, then **Connect and test**. Success shows the byte size of one
    raw message. Record the outcome here.
 
-## Real `.eml` check — steps to finish
+### Outcome
+
+- **Date:** 2026-11-26
+- **Result:** PASS
+- **Extension ID matched:** yes (`oijpcmifakangkecaplidfpgjhhidbop`)
+- **Raw message size (bytes):** 114456
+- **Failed step and exact error:** none
+- **Notes:** Setup complete. Connect and test fetched one raw message.
+
+
+## Real `.eml` check — (COMPLETED)
 
 In Gmail: open a message, three-dot menu, **Show original**, **Download original**. Save it
 under `private/` (ignored by git) and run `npm run spike:eml -- private/<file>.eml`. Record the
 result here without addresses or content.
+
+### Outcome
+
+- **Date:** 2026-11-26
+- **Result:** PASS — the DKIM signature card showed `pass` for the signing domain `nu.edu.pk`.
