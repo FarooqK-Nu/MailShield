@@ -167,7 +167,7 @@ describe('pipeline behaviour', () => {
       'verdict',
     ]);
     const status = (name: string) => stages.find((s) => s.stage === name)!.status;
-    for (const name of ['smime', 'rules']) expect(status(name)).toBe('not_evaluated');
+    expect(status('smime')).toBe('not_evaluated');
     expect(status('registry')).toBe('skipped');
     expect(status('receiver')).toBe('skipped');
   });

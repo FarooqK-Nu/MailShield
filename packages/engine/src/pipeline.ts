@@ -16,8 +16,12 @@ import type { DnsResolver } from './dns/resolver.ts';
 import { emptyRegistry, inspectDomain, matchClaim, type RegistryPort } from './identity/matcher.ts';
 import { AnalysisError, LIMITS } from './intake/limits.ts';
 import { readSender } from './parse/addresses.ts';
+import { extractLinks } from './parse/links.ts';
 import { parseMime } from './parse/mime.ts';
 import { readRawHeaders } from './parse/raw-headers.ts';
+import { DEFAULT_RULE_CONFIG, type RuleConfig } from './rules/config.ts';
+import { runRules, type RuleContext } from './rules/rules.ts';
+import { decideVerdict } from './rules/verdict.ts';
 
 export interface AnalysisInput {
   /** Original bytes, never mutated. */
@@ -27,11 +31,12 @@ export interface AnalysisInput {
   messageRef?: string;
 }
 
-/** Key history, trust store and rule configuration join these in later phases. */
+/** Key history and the S/MIME trust store join these in later phases. */
 export interface EngineDeps {
   resolver: DnsResolver;
   /** Trusted identity registry; empty when not given. */
   registry?: RegistryPort;
+  config?: RuleConfig;
   clock: () => Date;
   onStage?: (event: StageEvent) => void;
 }
@@ -44,7 +49,6 @@ interface StageReport {
 }
 
 const SMIME_NOTE = 'Personal (S/MIME) signatures are not evaluated yet.';
-const RULES_NOTE = 'Impersonation rules are not evaluated yet.';
 
 const ALIGNMENT_STAGE: Record<Evidence['status'], StageStatus> = {
   pass: 'pass',
@@ -111,7 +115,7 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     return { status: 'pass', inputs: { bytes: raw.length, source }, value: null };
   });
 
-  const { headers, sender } = await run('parse', async () => {
+  const { headers, sender, mime } = await run('parse', async () => {
     const headers = readRawHeaders(raw);
     if (headers.fields.length === 0) {
       throw new AnalysisError('malformed_message', 'No email headers were found.');
@@ -123,9 +127,9 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     if (sender.fromAmbiguous) notes.push('The From header does not name exactly one sender.');
     return {
       status: notes.length ? 'warn' : 'pass',
-      outputs: { headerFields: headers.fields.length, ...mime },
+      outputs: { headerFields: headers.fields.length, ...mime?.summary },
       limitations: notes,
-      value: { headers, sender },
+      value: { headers, sender, mime },
     };
   });
 
@@ -262,7 +266,7 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     };
   });
 
-  const candidates = await run('registry', async () => {
+  const { candidates, identities } = await run('registry', async () => {
     const identities = await (deps.registry ?? emptyRegistry).identities();
     const found = fromBox
       ? matchClaim(
@@ -284,22 +288,48 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
         candidates: found.map((c) => ({ id: c.identityId, score: c.score, reasons: c.reasons })),
       },
       limitations: notes,
-      value: found,
+      value: { candidates: found, identities },
     };
   });
 
-  record('rules', deps.clock(), { status: 'not_evaluated', limitations: [RULES_NOTE] });
-  limitations.push(
-    'Impersonation rules have not run, so this result cannot confirm who sent the message.',
-  );
+  const links = mime?.html ? extractLinks(mime.html) : [];
+  const ctx: RuleContext = {
+    sender,
+    signatures,
+    authentication,
+    candidates,
+    identities,
+    links,
+    headerOnly,
+    config: deps.config ?? DEFAULT_RULE_CONFIG,
+  };
+  const { findings } = await run('rules', async () => {
+    const ran = runRules(ctx);
+    const count = (severity: string) => ran.findings.filter((f) => f.severity === severity).length;
+    return {
+      status: count('high') ? 'fail' : count('caution') ? 'warn' : 'pass',
+      inputs: { configVersion: ctx.config.version, links: links.length },
+      outputs: {
+        evaluated: ran.evaluated,
+        notEvaluated: ran.notEvaluated,
+        findings: ran.findings.map((f) => f.id),
+      },
+      limitations: ran.notEvaluated.includes('R8')
+        ? ['R8 (first contact and key change) needs key history and is not evaluated yet.']
+        : [],
+      value: ran,
+    };
+  });
   if (signatures.some((s) => s.status === 'missing' || s.status === 'temporary_error')) {
     limitations.push('A DNS key is unavailable now; a check made at delivery time may differ.');
   }
 
-  // Rows 2 and 6 of the verdict table (architecture.md §3.9). The rest needs the Phase 3 rules.
-  const ambiguous = sender.fromAmbiguous;
-  const verdict = ambiguous ? 'authentication_concern' : 'identity_unverified';
-  record('verdict', deps.clock(), { status: 'warn', outputs: { verdict } });
+  const decision = decideVerdict(ctx, findings);
+  limitations.push(...decision.limitations);
+  record('verdict', deps.clock(), {
+    status: decision.riskLevel === 'high' ? 'fail' : decision.riskLevel === 'low' ? 'pass' : 'warn',
+    outputs: { verdict: decision.verdict, row: decision.basis.row },
+  });
 
   return {
     analysisId: randomUUID(),
@@ -314,11 +344,15 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     candidates,
     authentication,
     signatures,
-    findings: [],
+    findings,
+    links,
+    rawHeaders: headers.fields.map(({ name, value, offset }) => ({ name, value, offset })),
+    preview: { text: mime?.text ?? null, html: mime?.html ?? null },
     stages,
-    verdict,
-    identityStatus: ambiguous ? 'ambiguous' : 'unverified',
-    riskLevel: ambiguous ? 'caution' : 'unknown',
+    verdict: decision.verdict,
+    verdictBasis: decision.basis,
+    identityStatus: decision.identityStatus,
+    riskLevel: decision.riskLevel,
     limitations,
     analyzedAt: deps.clock().toISOString(),
   };

@@ -73,6 +73,7 @@ const fixtures = [
     raw: tampered,
     dns: 'acme.json',
     signatures: [{ status: 'fail', failureStage: 'body_hash' }],
+    verdict: 'authentication_concern',
   },
   {
     id: 'unsigned',
@@ -100,7 +101,7 @@ const fixtures = [
   },
 ];
 
-for (const { raw, signatures, ...fixture } of fixtures) {
+for (const { raw, signatures, verdict = 'identity_unverified', ...fixture } of fixtures) {
   writeFileSync(path(`eml/dev/${fixture.id}.eml`), raw);
   writeFileSync(
     path(`labels/${fixture.id}.json`),
@@ -108,7 +109,7 @@ for (const { raw, signatures, ...fixture } of fixtures) {
       ...fixture,
       eml: `dev/${fixture.id}.eml`,
       now: NOW,
-      expected: { verdict: 'identity_unverified', signatures },
+      expected: { verdict, signatures },
     }),
   );
 }

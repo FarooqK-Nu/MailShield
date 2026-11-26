@@ -29,3 +29,7 @@ export {
   normalizeName,
   type RegistryPort,
 } from './identity/matcher.ts';
+export { extractLinks } from './parse/links.ts';
+export { DEFAULT_RULE_CONFIG, RULE_IDS, type RuleConfig, type RuleId } from './rules/config.ts';
+export { runRules, type RuleContext } from './rules/rules.ts';
+export { decideVerdict } from './rules/verdict.ts';
