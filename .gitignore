@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+coverage/
+playwright-report/
+test-results/
+# Downloaded real mail must never be committed
+private/
+fixtures/.smime-tmp/

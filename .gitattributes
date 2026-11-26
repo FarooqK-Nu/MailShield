@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# Signed messages must keep their exact bytes
+*.eml -text
+fixtures/** -text

@@ -1,0 +1,22 @@
+{
+  "name": "@mailshield/engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@mailshield/contracts": "workspace:*",
+    "mailauth": "^8.1.0",
+    "pkijs": "^4.0.1",
+    "postal-mime": "^4.2.1",
+    "tldts": "^7.6.0"
+  },
+  "devDependencies": {
+    "asn1js": "^4.1.0"
+  }
+}
