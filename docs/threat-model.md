@@ -34,7 +34,7 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 | Message-controlled DNS names probe internal hosts | Validated auth names, TXT only, lookup budget | Done (SPF names later) |
 | Slow or silent DNS stalls analysis | Per-query deadline, 10 s per analysis | Done |
 | Oversized or deeply nested MIME | Size, depth, part and header limits; compressed request bodies refused (11) | Done |
-| Active content or tracking pixels in preview | Sanitize, sandboxed iframe, no remote loads (5) | Phase 3 |
+| Active content or tracking pixels in preview | DOMPurify, link targets removed, sandboxed iframe with CSP `default-src 'none'`; Playwright network test (5) | Done |
 | Content or secrets in logs | Redacting logger and log-capture test (6) | Done |
 | Lookalike or confusable domain | Boundary matching, UTS #39 skeletons (4) | Phase 2 |
 | Lab trust leaks into live analysis | Separate package, trust store and resolver; clients cannot claim lab or fixture sources (7) | Import rule and route test done; runtime check Phase 5 |

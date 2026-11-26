@@ -119,10 +119,10 @@ gantt
 | Regression tests for every rule (+/−) and every verdict table row | Overview page with real local-session counts and empty states |
 
 **Exit criteria:**
-- [ ] *Headline demo works:* a lookalike domain with **passing** DKIM for its own domain + display name “Acme Support” → **Possible impersonation**, explaining that the domain is authenticated but isn't Acme's.
-- [ ] Legit Acme fixture → “No concerning identity mismatch found” plus the limitation “domain identity, not personal authorship”.
-- [ ] Every verdict in the UI links to its findings and evidence.
-- [ ] Preview loads no remote resources (Playwright network assertion).
+- [x] *Headline demo works:* a lookalike domain with **passing** DKIM for its own domain + display name “Acme Support” → **Possible impersonation**, explaining that the domain is authenticated but isn't Acme's.
+- [x] Legit Acme fixture → “No concerning identity mismatch found” plus the limitation “domain identity, not personal authorship”.
+- [x] Every verdict in the UI links to its findings and evidence (the verdict basis is tested in the engine; the UI links have no E2E test yet).
+- [x] Preview loads no remote resources (Playwright network assertion).
 
 ---
 
