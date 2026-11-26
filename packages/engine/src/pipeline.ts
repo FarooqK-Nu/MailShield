@@ -9,8 +9,11 @@ import type {
   StageStatus,
 } from '@mailshield/contracts';
 import { listSignatures, verifyDkim } from './authentication/dkim.ts';
-import type { DnsLookup } from './dns/mailauth-adapter.ts';
+import { DMARC_LIMITATION, evaluateDmarc } from './authentication/dmarc.ts';
+import { readReceiverResults } from './authentication/receiver-results.ts';
+import { toMailauthResolver, type DnsLookup } from './dns/mailauth-adapter.ts';
 import type { DnsResolver } from './dns/resolver.ts';
+import { emptyRegistry, inspectDomain, matchClaim, type RegistryPort } from './identity/matcher.ts';
 import { AnalysisError, LIMITS } from './intake/limits.ts';
 import { readSender } from './parse/addresses.ts';
 import { parseMime } from './parse/mime.ts';
@@ -24,9 +27,11 @@ export interface AnalysisInput {
   messageRef?: string;
 }
 
-/** Registry, key history, trust store and rule configuration join these in later phases. */
+/** Key history, trust store and rule configuration join these in later phases. */
 export interface EngineDeps {
   resolver: DnsResolver;
+  /** Trusted identity registry; empty when not given. */
+  registry?: RegistryPort;
   clock: () => Date;
   onStage?: (event: StageEvent) => void;
 }
@@ -38,14 +43,19 @@ interface StageReport {
   limitations?: string[];
 }
 
-const NOT_BUILT: [StageName, string][] = [
-  ['receiver', 'Results reported by the receiving mail provider are not evaluated yet.'],
-  ['alignment', 'DMARC alignment is not evaluated yet.'],
-  ['smime', 'Personal (S/MIME) signatures are not evaluated yet.'],
-  ['identity', 'The claimed identity is not analysed yet.'],
-  ['registry', 'There is no trusted identity registry yet.'],
-  ['rules', 'Impersonation rules are not evaluated yet.'],
-];
+const SMIME_NOTE = 'Personal (S/MIME) signatures are not evaluated yet.';
+const RULES_NOTE = 'Impersonation rules are not evaluated yet.';
+
+const ALIGNMENT_STAGE: Record<Evidence['status'], StageStatus> = {
+  pass: 'pass',
+  fail: 'fail',
+  missing: 'warn',
+  unknown: 'warn',
+  temporary_error: 'error',
+  unsupported: 'warn',
+  untrusted: 'warn',
+  not_evaluated: 'not_evaluated',
+};
 
 function dkimStageStatus(signatures: SignatureEvidence[]): StageStatus {
   const has = (status: SignatureEvidence['status']) => signatures.some((s) => s.status === status);
@@ -120,6 +130,8 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
   });
 
   const lookups: DnsLookup[] = [];
+  // One adapter per message, so DKIM and DMARC share the lookup budget and deadline.
+  const lookup = toMailauthResolver(deps.resolver, { onLookup: (l) => lookups.push(l) });
   let signatures: SignatureEvidence[];
   const dkimStarted = deps.clock();
   const dkimTimer = performance.now();
@@ -138,7 +150,7 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
       resolver: deps.resolver,
       now: deps.clock(),
       source: evidenceSource,
-      dns: { onLookup: (lookup) => lookups.push(lookup) },
+      lookup,
     });
     const durationMs = Math.round(performance.now() - dkimTimer);
     const dnsFailed = lookups.some((l) => l.status === 'timeout' || l.status === 'servfail');
@@ -186,11 +198,99 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     });
   }
 
-  for (const [stage, note] of NOT_BUILT) {
-    record(stage, deps.clock(), { status: 'not_evaluated', limitations: [note] });
+  const receiver = await run('receiver', async () => {
+    const evidence = readReceiverResults(headers, source, observedAt);
+    return {
+      status: evidence.length ? 'warn' : 'skipped',
+      outputs: { headers: evidence.length, trusted: 0 },
+      limitations: evidence.length
+        ? ['Authentication-Results headers in the message are shown for information only.']
+        : [],
+      value: evidence,
+    };
+  });
+  authentication.push(...receiver);
+
+  const fromBox = sender.fromAmbiguous ? undefined : sender.from[0];
+  if (headerOnly) {
+    record('alignment', deps.clock(), {
+      status: 'not_evaluated',
+      limitations: ['Header-only input: DMARC alignment needs verified signatures.'],
+    });
+  } else {
+    const fromDomain = fromBox?.domain ?? '';
+    const dmarc = await run('alignment', async () => {
+      const before = lookups.length;
+      const evidence = await evaluateDmarc({
+        fromDomain,
+        signatures,
+        lookup,
+        source: evidenceSource,
+        observedAt,
+      });
+      return {
+        status: ALIGNMENT_STAGE[evidence.status],
+        inputs: { fromDomain },
+        outputs: { status: evidence.status, ...evidence.details, lookups: lookups.slice(before) },
+        limitations: [DMARC_LIMITATION],
+        value: evidence,
+      };
+    });
+    authentication.push(dmarc);
+    limitations.push(DMARC_LIMITATION);
   }
+
+  record('smime', deps.clock(), { status: 'not_evaluated', limitations: [SMIME_NOTE] });
+
+  const domains = await run('identity', async () => {
+    const roles = [
+      ...sender.from.map((m) => ['from', m.domain] as const),
+      ...sender.sender.map((m) => ['sender', m.domain] as const),
+      ...sender.replyTo.map((m) => ['reply_to', m.domain] as const),
+      ...sender.returnPath.map((m) => ['return_path', m.domain] as const),
+      ...signatures.map((s) => ['dkim', s.domain ?? ''] as const),
+    ];
+    const inspected = roles
+      .filter(([, domain]) => domain)
+      .map(([role, domain]) => inspectDomain(role, domain));
+    const mixed = inspected.filter((d) => d.mixedScript).map((d) => d.unicode);
+    return {
+      status: mixed.length ? 'warn' : 'pass',
+      outputs: { domains: inspected.length, mixedScript: mixed },
+      limitations: mixed.length ? ['A domain mixes writing systems in one label.'] : [],
+      value: inspected,
+    };
+  });
+
+  const candidates = await run('registry', async () => {
+    const identities = await (deps.registry ?? emptyRegistry).identities();
+    const found = fromBox
+      ? matchClaim(
+          { displayName: fromBox.displayName, address: fromBox.address, domain: fromBox.domain },
+          identities,
+        )
+      : [];
+    const unapproved = found.some((c) => !c.approvedDomain);
+    const notes =
+      identities.length === 0
+        ? ['The trusted identity registry is empty.']
+        : found.length === 0
+          ? ['No registry identity matches this sender.']
+          : [];
+    return {
+      status: identities.length === 0 ? 'skipped' : unapproved ? 'warn' : 'pass',
+      inputs: { registryEntries: identities.length },
+      outputs: {
+        candidates: found.map((c) => ({ id: c.identityId, score: c.score, reasons: c.reasons })),
+      },
+      limitations: notes,
+      value: found,
+    };
+  });
+
+  record('rules', deps.clock(), { status: 'not_evaluated', limitations: [RULES_NOTE] });
   limitations.push(
-    'No identity, DMARC or impersonation checks have run, so this result cannot confirm who sent the message.',
+    'Impersonation rules have not run, so this result cannot confirm who sent the message.',
   );
   if (signatures.some((s) => s.status === 'missing' || s.status === 'temporary_error')) {
     limitations.push('A DNS key is unavailable now; a check made at delivery time may differ.');
@@ -207,7 +307,11 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     inputSource: source,
     messageRef: input.messageRef,
     sender,
-    claimedIdentity: null,
+    claimedIdentity: fromBox
+      ? { displayName: fromBox.displayName, address: fromBox.address }
+      : null,
+    domains,
+    candidates,
     authentication,
     signatures,
     findings: [],

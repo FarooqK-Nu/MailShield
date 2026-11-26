@@ -46,7 +46,8 @@ Consequences for Phase 1:
 
 **DMARC discovery (verify P0):** RFC 9989 DNS tree walk, tested. It queries up to the TLD
 (for example `_dmarc.example`). Parts of the DMARC check also ask for `A`/`CNAME` records,
-which our adapter currently refuses; Phase 2 has to handle that.
+which our adapter refuses. Phase 2 resolution: only policy discovery and the tree walk are used
+(TXT only), and the `np` tag is not evaluated (see `architecture.md` §3.6).
 
 ## S/MIME: pkijs 4.0.1
 

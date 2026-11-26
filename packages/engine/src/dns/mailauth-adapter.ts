@@ -44,11 +44,16 @@ async function within(
   }
 }
 
+export type MailauthResolver = (name: string, rrtype: string) => Promise<string[][]>;
+
 /**
  * Wraps our resolver in mailauth's `(name, rrtype)` signature. Every query is validated,
  * counted against a budget and bounded in time. Create one adapter per analysis.
  */
-export function toMailauthResolver(resolver: DnsResolver, options: AdapterOptions = {}) {
+export function toMailauthResolver(
+  resolver: DnsResolver,
+  options: AdapterOptions = {},
+): MailauthResolver {
   const { budget = 20, deadlineMs = 10_000, onLookup } = options;
   let used = 0;
   let deadline: number | undefined;

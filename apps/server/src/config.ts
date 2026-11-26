@@ -20,6 +20,8 @@ const Env = z.object({
     .regex(/^[a-p]{32}$/)
     .default(DEFAULT_EXTENSION_ID),
   DATA_DIR: z.string().default('.mailshield'),
+  /** SQLite file for the registry; relative to DATA_DIR. */
+  DB_PATH: z.string().default('mailshield.db'),
   DNS_SERVERS: z
     .string()
     .default('')
@@ -33,6 +35,7 @@ export interface Config {
   allowedOrigins: Set<string>;
   extensionOrigin: string;
   dataDir: string;
+  dbPath: string;
   dnsTimeoutMs: number;
   /** Undefined means the system resolvers. */
   dnsServers: string[] | undefined;
@@ -46,6 +49,7 @@ export function readConfig(env: NodeJS.ProcessEnv): Config {
     allowedOrigins: new Set([...list(parsed.ALLOWED_ORIGINS), extensionOrigin]),
     extensionOrigin,
     dataDir: resolve(REPO_ROOT, parsed.DATA_DIR),
+    dbPath: resolve(REPO_ROOT, parsed.DATA_DIR, parsed.DB_PATH),
     dnsTimeoutMs: parsed.DNS_TIMEOUT_MS,
     dnsServers: parsed.DNS_SERVERS.length ? parsed.DNS_SERVERS : undefined,
   };

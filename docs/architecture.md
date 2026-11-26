@@ -212,7 +212,7 @@ interface DnsResolver {
 - `receiver-results.ts` implements the live-Gmail strategy from `context.md` §7. For `source ≠ gmail_api` it always returns `untrusted_header` records (shown for information, never used in verdict logic).
 - `dmarc.ts`:
   - **Local partial alignment:** does any *locally verified* DKIM `d=` align (relaxed/strict per discovered policy) with the From domain? Labelled `partial (DKIM-only)`, because SPF can't be independently verified for uploads.
-  - **Policy discovery:** via `mailauth`'s DMARC support, using the same resolver. **(verify P0: whether mailauth follows RFC 9989 tree-walk discovery or PSL. The UI must state which one we used.)**
+  - **Policy discovery:** via `mailauth`'s DMARC support, using the same resolver and the same per-message DNS budget as DKIM. It uses the RFC 9989 tree walk (P0 spike), and the Organizational Domains used for relaxed alignment come from the same walk. The UI states this. The `np` tag is not evaluated: it needs `A`/`CNAME` queries, which invariant 5 does not allow.
   - **Receiver DMARC:** shown separately when `trusted_receiver`.
   - SPF is evaluated **only** in fixtures that provide trusted `{ip, helo, mailFrom}` envelope metadata.
 
@@ -305,7 +305,9 @@ Typed failures (`application/problem+json`): `malformed_message`, `input_too_lar
 | `POST /api/v1/analyze/headers` | `text/plain` headers | `headerOnly=true`; body/signature checks are `not_evaluated` |
 | `GET/POST /api/v1/identities` | Identity JSON | Organizations and persons |
 | `PATCH/DELETE /api/v1/identities/:id` | Partial / none | UI confirms first; soft-delete keeps an audit row |
-| `POST /api/v1/identities/:id/keys` | PEM cert / SPKI public key + provenance | Rejects anything containing a private key block |
+| `POST /api/v1/identities/:id/keys` | PEM cert / SPKI public key + provenance | Rejects anything containing a private key block (`private_key_rejected`) |
+| `GET /api/v1/identities/:id/audit` · `GET /api/v1/audit` | none | Audit events, newest first |
+| `GET /api/v1/registry/export` · `POST /api/v1/registry/import` | `RegistryFile` JSON | Keys are not exported; an entry with an existing kind and name is skipped |
 | `GET /api/v1/keys/history` | `?domain=&selector=` | Key observations |
 | `POST /api/v1/lab/run` | `LabScenario` (allowlisted ids + mutation list) | Runs the engine with lab deps |
 | `GET /api/v1/fixtures` · `POST /api/v1/evaluation/run` | split = dev / heldout | Metrics from real runs |

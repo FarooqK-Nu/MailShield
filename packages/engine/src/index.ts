@@ -7,3 +7,25 @@ export { LiveResolver, type DnsAnswer, type DnsResolver, type DnsStatus } from '
 export { toMailauthResolver, type DnsLookup } from './dns/mailauth-adapter.ts';
 export { rawDkimVerify } from './authentication/mailauth-dkim.ts';
 export { keyFingerprint } from './authentication/fingerprint.ts';
+export { evaluateDmarc, DMARC_LIMITATION } from './authentication/dmarc.ts';
+export { parseAuthResults, readReceiverResults } from './authentication/receiver-results.ts';
+export {
+  analyzeDomain,
+  matchesApproved,
+  toAsciiHost,
+  type DomainParts,
+} from './identity/domain.ts';
+export {
+  confusableKey,
+  confusablesVersion,
+  describeCodePoints,
+  skeleton,
+} from './identity/confusables.ts';
+export { compareLabels, charDiff, osaDistance } from './identity/similarity.ts';
+export {
+  emptyRegistry,
+  inspectDomain,
+  matchClaim,
+  normalizeName,
+  type RegistryPort,
+} from './identity/matcher.ts';

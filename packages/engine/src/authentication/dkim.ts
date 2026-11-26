@@ -5,7 +5,7 @@ import type {
   FailureStage,
   SignatureEvidence,
 } from '@mailshield/contracts';
-import type { AdapterOptions } from '../dns/mailauth-adapter.ts';
+import type { AdapterOptions, MailauthResolver } from '../dns/mailauth-adapter.ts';
 import type { DnsResolver } from '../dns/resolver.ts';
 import { AnalysisError, LIMITS } from '../intake/limits.ts';
 import { headerValues, type RawHeaders } from '../parse/raw-headers.ts';
@@ -211,7 +211,13 @@ export function listSignatures(headers: RawHeaders, source: EvidenceSource): Sig
 export async function verifyDkim(
   raw: Buffer,
   headers: RawHeaders,
-  deps: { resolver: DnsResolver; now: Date; source: EvidenceSource; dns?: AdapterOptions },
+  deps: {
+    resolver: DnsResolver;
+    now: Date;
+    source: EvidenceSource;
+    dns?: AdapterOptions;
+    lookup?: MailauthResolver;
+  },
 ): Promise<SignatureEvidence[]> {
   const values = headerValues(headers, 'dkim-signature');
   if (values.length === 0) return [];

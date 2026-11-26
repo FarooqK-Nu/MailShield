@@ -1,0 +1,43 @@
+{
+  "format": "mailshield-registry",
+  "version": 1,
+  "exportedAt": "2026-11-27T00:00:00.000Z",
+  "identities": [
+    {
+      "kind": "organization",
+      "displayName": "Acme Corporation",
+      "trustState": "user_trusted",
+      "provenanceUrl": null,
+      "notes": "Fictional organization for demos and tests. Uses a reserved .example domain.",
+      "lastReviewed": "2026-11-27T00:00:00.000Z",
+      "aliases": ["Acme", "Acme Support", "Acme Billing"],
+      "domains": [
+        { "domain": "acme.example", "includeSubdomains": true, "relationship": "own" },
+        { "domain": "acme-mail.example", "includeSubdomains": false, "relationship": "service_provider" }
+      ],
+      "addresses": ["billing@acme.example"]
+    },
+    {
+      "kind": "organization",
+      "displayName": "Globex",
+      "trustState": "user_trusted",
+      "provenanceUrl": null,
+      "notes": "Fictional organization for demos and tests. Uses a reserved .example domain.",
+      "lastReviewed": "2026-11-27T00:00:00.000Z",
+      "aliases": ["Globex Corporation", "Globex Payroll"],
+      "domains": [{ "domain": "globex.example", "includeSubdomains": true, "relationship": "own" }],
+      "addresses": []
+    },
+    {
+      "kind": "person",
+      "displayName": "Alice Example",
+      "trustState": "unverified",
+      "provenanceUrl": null,
+      "notes": "Fictional person for the S/MIME lab (Phase 6).",
+      "lastReviewed": null,
+      "aliases": ["Alice"],
+      "domains": [],
+      "addresses": ["alice@acme.example"]
+    }
+  ]
+}

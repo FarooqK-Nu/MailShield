@@ -5,18 +5,21 @@ import express from 'express';
 import { rateLimit } from 'express-rate-limit';
 import type { Logger } from 'pino';
 import type { Config } from './config.ts';
+import type { RegistryRepo } from './db/registry-repo.ts';
 import { errorHandler, notFound, sendProblem } from './middleware/errors.ts';
 import { hostGuard } from './middleware/host-guard.ts';
 import { originGuard, requireOrigin } from './middleware/origin-guard.ts';
 import { requireToken, type Pairing } from './middleware/pairing-auth.ts';
 import { requestLogger } from './middleware/redact-logger.ts';
 import { analyzeRoutes } from './routes/analyze.ts';
+import { identityRoutes } from './routes/identities.ts';
 import { labRoutes } from './routes/lab.ts';
 
 export interface AppDeps {
   config: Pick<Config, 'port' | 'allowedOrigins' | 'extensionOrigin'>;
   /** Used by live analysis only. */
   resolver: DnsResolver;
+  registry: RegistryRepo;
   pairing: Pairing;
   logger: Logger;
   clock: () => Date;
@@ -31,7 +34,7 @@ const limit = (perMinute: number) =>
     handler: (_req, res) => sendProblem(res, 'rate_limited'),
   });
 
-export function buildApp({ config, resolver, pairing, logger, clock }: AppDeps) {
+export function buildApp({ config, resolver, registry, pairing, logger, clock }: AppDeps) {
   const app = express();
   app.disable('x-powered-by');
 
@@ -61,8 +64,12 @@ export function buildApp({ config, resolver, pairing, logger, clock }: AppDeps) 
 
   const guards = [requireToken(pairing), limit(60)];
   api.use(
-    analyzeRoutes({ resolver, clock, logger, extensionOrigin: config.extensionOrigin }, guards),
+    analyzeRoutes(
+      { resolver, registry, clock, logger, extensionOrigin: config.extensionOrigin },
+      guards,
+    ),
   );
+  api.use(identityRoutes(registry, guards));
   api.use(labRoutes(guards));
 
   app.use('/api/v1', api);

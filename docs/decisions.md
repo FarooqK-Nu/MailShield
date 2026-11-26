@@ -11,6 +11,7 @@ Short records of changes to the plan in `context.md`, `architecture.md` and the 
 | A-4 | 2026-11-26 | The DNS cache keeps every answer for a fixed 60 seconds instead of each record's TTL: Node does not report TTLs for TXT records. Timeouts and server failures are not cached. |
 | A-5 | 2026-11-26 | New route `POST /api/v1/lab/demo/:id` lets the Analyze page run labelled demo fixtures against fixture DNS. Results are marked simulated; live analysis cannot reach fixture DNS. |
 | A-6 | 2026-11-26 | New optional `DNS_SERVERS` setting. On some Windows machines Node finds no working system DNS server; the service warns at startup when DNS is unreachable. |
+| A-7 | 2026-11-27 | Database migrations are hand-written SQL files in `apps/server/src/db/migrations/`, applied by a small runner; `drizzle-kit` is not used. It pulls in an esbuild version with a known advisory. A test checks that the SQL and the Drizzle schema have the same columns. SQLite driver: `better-sqlite3`. |
 | A-2 | 2026-11-26 | Spec items no phase covered (Settings page, header paste, demo loading, side panel quick actions, lab avatar and custom message) are now assigned in the roadmap. |
 
 ## Approved proposals
