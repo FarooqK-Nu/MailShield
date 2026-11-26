@@ -22,10 +22,10 @@ The core idea to defend in the viva:
 | # | Decision | Why |
 |---|---|---|
 | D1 | **TypeScript everywhere** (Node.js ≥ 24 LTS backend, React frontend, MV3 extension). | One language for a 2-person team; shared types; no Python/JS context switching. |
-| D2 | **pnpm monorepo** with a pure `packages/engine` library separate from the HTTP server. | The engine runs in tests, the evaluation CLI, the lab and the server with no HTTP involved. Pure functions + injected dependencies (DNS, registry, clock) give deterministic results. |
+| D2 | **npm workspaces monorepo** with a pure `packages/engine` library separate from the HTTP server. | The engine runs in tests, the evaluation CLI, the lab and the server with no HTTP involved. Pure functions + injected dependencies (DNS, registry, clock) give deterministic results. |
 | D3 | **Zod schemas in `packages/contracts`** are the single source of truth for API payloads. | Backend validates with them, frontend/extension infer types from them, so the two cannot drift apart. |
 | D4 | **`mailauth`** for DKIM verify/sign, DMARC, ARC and fixture-only SPF. | Maintained, standards-focused, accepts a **custom DNS resolver** (essential for fixture DNS and the offline lab). Replaces `dkimpy`. |
-| D5 | **Fastify** instead of FastAPI. | Built-in JSON-schema validation, hooks for auth/origin checks, good performance, first-class TypeScript. |
+| D5 | **Express 5** instead of FastAPI. | Team preference and familiarity. Validation (Zod middleware), auth/origin guards and limits are ordinary middleware. |
 | D6 | **SQLite via `better-sqlite3` + Drizzle ORM** (with migrations). | Zero-ops local DB, typed queries, parameterized by default. |
 | D7 | **S/MIME via `pkijs`** (CMS SignedData verification), with the **OpenSSL CLI** as a cross-check in tests. | `node-forge` cannot fully verify PKCS#7 signatures; pkijs can. Never hand-roll crypto. |
 | D8 | **Pipeline emits stage events.** | One mechanism drives the dashboard's “authentication pipeline” view, the lab animation and test assertions. Animations replay real events instead of scripted ones. |
@@ -37,18 +37,18 @@ The core idea to defend in the viva:
 
 ## 3. Technology stack (Node.js)
 
-> Versions are pinned in `pnpm-lock.yaml`. **Phase 0 must confirm** each library supports the feature listed before code depends on it (see roadmap).
+> Versions are pinned in `package-lock.json`. **Phase 0 must confirm** each library supports the feature listed before code depends on it (see roadmap).
 
 | Concern | Choice | Notes |
 |---|---|---|
 | Runtime | Node.js 24 LTS (or the current LTS) | `node:crypto`, `node:dns/promises`, `X509Certificate`. |
-| Language/build | TypeScript (strict), `tsx` for dev, `tsup` for building packages | ESM throughout. |
-| Monorepo | pnpm workspaces | `apps/*`, `packages/*`. |
-| HTTP server | Fastify + `@fastify/cors`, `@fastify/rate-limit`, `fastify-type-provider-zod` | Binds `127.0.0.1` only. |
+| Language/build | TypeScript 6.0 (strict; held below 7 until lint tooling supports it), `tsx` for dev, `tsup` for building packages | ESM throughout. |
+| Monorepo | npm workspaces | `apps/*`, `packages/*`. |
+| HTTP server | Express 5 + `cors`, `express-rate-limit`, `pino-http`, own Zod validation middleware | Binds `127.0.0.1` only. `express.raw()` receives message bytes. |
 | Validation/contracts | Zod | Shared by server, web, extension. |
 | MIME parsing | `postal-mime` (structured parse) + our own raw header reader over the original `Buffer` | Raw bytes stay untouched for signature checks; the parsed view is only for display and rules. |
 | Email auth | `mailauth` | `dkimVerify`, `dmarc`, `arc`, `spf` (fixtures only), `dkimSign` (lab). |
-| DNS | `node:dns/promises` `Resolver` with timeouts, wrapped in our resolver interface; fixture resolver for lab/tests | TTL-aware LRU cache (`lru-cache`). |
+| DNS | `node:dns/promises` `Resolver` with timeouts, wrapped in our resolver interface; fixture resolver for lab/tests | LRU cache (`lru-cache`) with a fixed 60 s lifetime (A-4); optional `DNS_SERVERS` (A-6). |
 | Key fingerprints | `crypto.createPublicKey(pem).export({ type: 'spki', format: 'der' })` → SHA-256 hex | Labelled as a *key fingerprint*. |
 | X.509 / CMS | `pkijs` + `asn1js`, `@peculiar/x509` (lab cert generation), `node:crypto` X509Certificate | Lab CA lives only in the lab trust store. |
 | OpenPGP (stretch) | `openpgp` (OpenPGP.js) | Standard v4/v6 fingerprints. |
@@ -63,7 +63,7 @@ The core idea to defend in the viva:
 | Extension | Chrome MV3, Side Panel API, `chrome.identity`, Vite + `@crxjs/vite-plugin` | Fixed `key` in manifest → stable extension ID for OAuth. |
 | Tests | Vitest (unit/integration everywhere), Playwright (E2E), OpenSSL CLI cross-checks | |
 | Lint/format | ESLint + Prettier, `tsc --noEmit` in CI | |
-| Packaging | Optional Docker Compose for the server; plain `pnpm dev` is the main path | |
+| Packaging | Optional Docker Compose for the server; plain `npm run dev` is the main path | |
 
 ---
 
@@ -172,7 +172,7 @@ Each rule is a pure function `(context) => Finding[]` with a stable `rule_id`, v
 ```text
 mailshield/
   context.md  architecture.md  masterroadmap_plan.md  README.md
-  apps/server/        Fastify API, auth plugins, DB, routes
+  apps/server/        Express API, security middleware, DB, routes
   apps/web/           React dashboard + Security Lab
   apps/extension/     MV3 side panel, content script, OAuth
   packages/contracts/ Zod schemas + inferred TS types
@@ -192,7 +192,7 @@ mailshield/
 - Every security claim gets a regression test with a real signed fixture. A fixture without a label file doesn't count.
 - No fabricated data: no fake metrics, keys, official contacts or “pass” placeholders. Unimplemented features show “not implemented”.
 - Mock/fixture providers only in `packages/lab` and tests, always visibly labelled `lab`.
-- Conventional commits; PRs reviewed by the other member; `pnpm test && pnpm typecheck && pnpm lint` green before merge.
+- Conventional commits; PRs reviewed by the other member; `npm run check` (typecheck, lint, tests) green before merge.
 - Document any change to these decisions in `docs/decisions.md` (short ADR entries).
 
 ---

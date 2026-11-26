@@ -45,16 +45,16 @@ gantt
 
 | Member A (security) | Member B (application) |
 |---|---|
-| Spike `mailauth`: verify a real Gmail-downloaded `.eml` and a self-signed fixture; record the exact per-signature output fields, the resolver signature, error codes, and DMARC org-domain method (PSL vs RFC 9989 tree walk) | Create the pnpm monorepo: `apps/{server,web,extension}`, `packages/{contracts,engine,lab,ui}`, shared tsconfig, ESLint (with package-boundary rule), Prettier, Vitest, root scripts |
+| Spike `mailauth`: verify a real Gmail-downloaded `.eml` and a self-signed fixture; record the exact per-signature output fields, the resolver signature, error codes, and DMARC org-domain method (PSL vs RFC 9989 tree walk) | Create the npm workspaces monorepo: `apps/{server,web,extension}`, `packages/{contracts,engine,lab,ui}`, shared tsconfig, ESLint (with package-boundary rule), Prettier, Vitest, root scripts |
 | Spike `pkijs`: verify an OpenSSL-produced S/MIME signed message, check chain against a custom root | Spike OAuth: Google Cloud project, Gmail API enabled, consent screen in *Testing*, Chrome-extension OAuth client bound to a fixed manifest `key`; `chrome.identity.getAuthToken` + `messages.get?format=raw` on a test account |
 | Confirm `tldts`, `confusables.txt` data source/version, and `dns/promises` timeout behaviour | Scaffold Vite React app + Tailwind + Radix; scaffold MV3 side panel with crxjs |
 | Draft `docs/threat-model.md` (assets, actors, trust boundaries) | Set up CI (GitHub Actions): typecheck, lint, test |
 
-**Deliverables:** `docs/spikes.md` (findings, library versions pinned, any gaps), running `pnpm dev`, CI green, `docs/decisions.md` started.
+**Deliverables:** `docs/spikes.md` (findings, library versions pinned, any gaps), running `npm run dev`, CI green, `docs/decisions.md` started.
 **Exit criteria:**
-- [ ] `mailauth` verifies a real DKIM signature through **our** resolver wrapper.
-- [ ] OAuth spike fetched one raw message, **or** the exact blocker is documented and the Show-original fallback is confirmed as the demo path.
-- [ ] Every “(verify P0)” item in `architecture.md` is answered.
+- [x] `mailauth` verifies a real DKIM signature through **our** resolver wrapper (locally signed and a real Gmail message).
+- [x] OAuth spike fetched one raw message, **or** the exact blocker is documented and the Show-original fallback is confirmed as the demo path.
+- [x] Every “(verify P0)” item in `architecture.md` is answered.
 
 **Risk gate:** if `mailauth` can't take a custom resolver or lacks per-signature results, the fallback is a thin wrapper over its lower-level DKIM verifier, or the team re-decides the library (record an ADR). Don't proceed without this.
 
@@ -66,20 +66,21 @@ gantt
 
 | Member A | Member B |
 |---|---|
-| `packages/contracts`: `Evidence`, `SignatureEvidence`, `StageEvent`, `AnalysisResult` (v1) | `apps/server`: Fastify app factory, config (zod env), Host guard, Origin guard, pairing auth, body limit, problem+json errors, redacting logger |
+| `packages/contracts`: `Evidence`, `SignatureEvidence`, `StageEvent`, `AnalysisResult` (v1) | `apps/server`: Express app factory, config (zod env), Host guard, Origin guard, pairing auth, body limit, problem+json errors, redacting logger |
 | `engine/intake`: size/MIME limits; `engine/parse`: raw header reader (repeated headers, offsets), address parsing with RFC 2047 + IDN, `postal-mime` integration | `POST /api/v1/analyze`, `/analyze/headers`, `/health`, `/pair` |
 | `engine/dns`: `ValidatedDnsName`, `LiveResolver` with timeout/cache/budget, mailauth adapter | `apps/web`: Analyze page with drag-and-drop, progress, error/retry, raw JSON result view; pairing screen |
 | `engine/authentication/dkim.ts`: all signatures, tag display, coverage (signed vs unsigned headers, `l=`), key type/size, SPKI fingerprint | `packages/ui`: `StatusBadge` (icon+text), `EvidenceCard`, minimal `VerdictCard` |
 | Pipeline with `StageEvent` emission | Typed API client from contracts |
+| | Analyze page: paste raw headers (unavailable checks shown) and “load demo” fixture; filename and size display; light/dark theme |
 | First fixtures: `legit-signed`, `body-tampered`, `unsigned`, `missing-dns-key`, `dns-timeout` + `FixtureResolver` stub | |
 
 **Deliverables:** upload an `.eml` in the dashboard and see each DKIM signature with real status, domain, selector, fingerprint and coverage.
 **Exit criteria:**
-- [ ] A real Gmail-downloaded `.eml` shows DKIM `pass` (when its key is still published).
-- [ ] The tampered fixture shows `fail` at the body-hash stage.
-- [ ] Unsigned → `missing`; DNS timeout → `temporary_error`. No fake pass anywhere.
-- [ ] Server rejects wrong Host, wrong Origin, missing token, and bodies over 10 MiB (tests).
-- [ ] Logs contain no message content (log-capture test).
+- [x] A real Gmail-downloaded `.eml` shows DKIM `pass` (when its key is still published).
+- [x] The tampered fixture shows `fail` at the body-hash stage.
+- [x] Unsigned → `missing`; DNS timeout → `temporary_error`. No fake pass anywhere.
+- [x] Server rejects wrong Host, wrong Origin, missing token, and bodies over 10 MiB (tests).
+- [x] Logs contain no message content (log-capture test).
 
 ---
 
@@ -136,6 +137,7 @@ gantt
 | Verify that `gmail_api` source is the only path to `trusted_receiver` (invariant test) | Side panel: connect/disconnect, consent explanation (“read-only can read all; we fetch only what you select”), selection confirmation, Analyze/Reanalyze, stage progress, verdict + identity + auth cards, findings, quick actions |
 | | Stale-result protection (`messageRef` check); rapid-switch test |
 | | Fallbacks: message picker (explicit consent), `.eml` drop zone, “Show original” instructions |
+| | Side panel quick actions: open full report, view raw headers, copy fingerprint, open registry entry, mark finding reviewed (local); privacy settings. “Export redacted report” is enabled in Phase 6 |
 
 **Exit criteria:**
 - [ ] On a test account: open a message → panel confirms the From/Subject → Analyze → real result.
@@ -156,6 +158,7 @@ gantt
 | `POST /lab/run` with allowlisted scenario IDs only; in-memory lab session; runtime assertion that the live paths never get lab deps | Animated evidence trail: play/pause/step/speed/reset, hover inspection; consumes real `StageEvent`s; “simulated” badges |
 | Fingerprint/avalanche demo: same key/two messages, Eve's key, rotation; body digest vs key fingerprint shown separately | Before/after mode: standard auth only vs with registry rules |
 | | Guided challenges + downloadable synthetic report + reset |
+| | Scenario builder: change dummy avatar; compose a short local test message |
 
 **Exit criteria:**
 - [ ] Changing one character in the body flips DKIM to `fail` and shows a completely different body hash.
@@ -176,6 +179,7 @@ gantt
 | R2 with enrolled keys; R8 first-contact/key-change using `KeyObservation` | Key History page: per domain+selector timeline, rotation vs unexpected change vs revoked |
 | Key observation recording (opt-in) with rotation classification | Redacted report export (JSON + printable HTML), with no subject/body |
 | OpenSSL `cms -verify` cross-check tests | Lab “personal verification challenge” flow |
+| | Settings page: consent/privacy, history retention (off by default), rule sensitivity (audited), DNS behaviour, theme, local data deletion and reset, session token revocation |
 
 **Exit criteria:**
 - [ ] Alice's signed message with her key enrolled → `corroborated_personal`.
@@ -198,7 +202,7 @@ gantt
 **Hardening (joint)**
 - Walk every row of the acceptance table in `MailShield_context.md` §18 and every invariant in `context.md` §8; each maps to a passing test.
 - Fuzz the parser with malformed MIME / deep nesting / huge headers (bounded time and memory).
-- Dependency audit (`pnpm audit`), permission review of the manifest, UI copy review (no “safe”, no accusations).
+- Dependency audit (`npm audit`), permission review of the manifest, UI copy review (no “safe”, no accusations).
 - Accessibility pass: keyboard navigation, focus rings, contrast, reduced motion.
 
 **Delivery**

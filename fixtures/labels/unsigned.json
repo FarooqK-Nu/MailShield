@@ -1,0 +1,12 @@
+{
+  "id": "unsigned",
+  "title": "Unsigned message",
+  "description": "A message with no DKIM signature.",
+  "dns": "acme.json",
+  "eml": "dev/unsigned.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": []
+  }
+}

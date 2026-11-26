@@ -13,7 +13,7 @@ flowchart LR
     U --> EXT[MailShield side panel<br/>Chrome MV3]
     U --> WEB[MailShield dashboard + lab<br/>React]
     EXT -- OAuth token stays here --> GAPI[(Gmail API<br/>gmail.readonly)]
-    EXT -- raw .eml bytes + pairing token --> SRV[Local verification service<br/>Fastify on 127.0.0.1]
+    EXT -- raw .eml bytes + pairing token --> SRV[Local verification service<br/>Express on 127.0.0.1]
     WEB -- .eml upload / registry / lab --> SRV
     SRV -- validated DKIM/DMARC names only --> DNS[(Public DNS)]
     SRV --> DB[(SQLite<br/>registry, key history,<br/>opt-in redacted results)]
@@ -36,7 +36,6 @@ flowchart LR
 ```text
 mailshield/
 ├─ package.json                 # root scripts: dev, build, test, lint, typecheck, eval
-├─ pnpm-workspace.yaml
 ├─ tsconfig.base.json
 ├─ apps/
 │  ├─ server/
@@ -44,7 +43,7 @@ mailshield/
 │  │     ├─ server.ts           # bootstrap, bind 127.0.0.1
 │  │     ├─ app.ts              # buildApp(deps) for tests
 │  │     ├─ config.ts           # env parsing (zod), limits, allowed origins
-│  │     ├─ plugins/
+│  │     ├─ middleware/
 │  │     │  ├─ host-guard.ts    # reject Host ≠ 127.0.0.1/localhost:PORT
 │  │     │  ├─ origin-guard.ts  # allowlist chrome-extension://<id>, dashboard origin
 │  │     │  ├─ pairing-auth.ts  # bearer token check (constant-time compare)
@@ -88,14 +87,15 @@ mailshield/
 │  ├─ eml/{dev,heldout}/*.eml
 │  ├─ dns/*.json                # fixture DNS zones
 │  ├─ labels/*.json             # expected verdict/findings per fixture
-│  └─ keys/                     # TEST-ONLY keys, clearly named
+│  ├─ keys/                     # TEST-ONLY keys, clearly named
+│  └─ smime/                    # test certificates and a signed message, no private keys
 ├─ tools/
 │  ├─ gen-fixtures.ts           # regenerates signed fixtures deterministically
 │  └─ evaluate.ts               # CLI: run engine over fixtures → metrics JSON
 └─ docs/                        # threat-model.md, api.md, decisions.md, test-report.md, demo.md
 ```
 
-**Dependency direction (enforced with ESLint `import/no-restricted-paths`):**
+**Dependency direction (enforced with ESLint `no-restricted-imports`, matching import names, P-2):**
 
 ```mermaid
 flowchart BT
@@ -190,8 +190,8 @@ interface DnsResolver {
 }
 ```
 
-- `ValidatedDnsName` is a branded type that can only be created by `validateAuthName()`. It accepts only `<sel>._domainkey.<domain>`, `_dmarc.<domain>` and SPF-target domains, checks LDH labels and length, and rejects IP literals and single-label names.
-- `LiveResolver`: `node:dns/promises` `Resolver` with a 3 s timeout and 2 tries, TTL-aware `lru-cache`, and a per-analysis lookup budget (e.g. ≤ 20 queries).
+- `ValidatedDnsName` is a branded type that can only be created by `validateAuthName()`. It accepts only `<sel>._domainkey.<domain>`, `_dmarc.<domain>` and SPF-target domains, checks LDH labels and length, and rejects IP literals and single-label domains, except under `_dmarc.` where the RFC 9989 tree walk queries up to the TLD (P-1).
+- `LiveResolver`: `node:dns/promises` `Resolver` with a 3 s timeout and 2 tries, an `lru-cache` with a fixed 60 s lifetime (Node does not report TXT TTLs, A-4; transient failures are not cached), a per-analysis lookup budget of 20 queries and a 10 s total DNS deadline. Servers come from the system unless `DNS_SERVERS` is set (A-6).
 - `FixtureResolver` (in `packages/lab`): answers from `fixtures/dns/*.json`; unknown names give `nxdomain`. Can simulate `timeout`.
 - Adapter to `mailauth`: its `resolver(name, rrtype)` option is wrapped so that every query passes through validation and the budget. **(verify P0: mailauth resolver signature and error-code expectations.)**
 
@@ -200,7 +200,7 @@ interface DnsResolver {
 1. Collect all `DKIM-Signature` headers from the raw reader and parse tags (`v a b bh c d h i l q s t x`) for display.
 2. Call `mailauth`'s `dkimVerify(raw, { resolver })` once. It verifies every signature. **(verify P0: per-signature output fields such as status, body hash comparison and public key.)**
 3. For each signature produce `SignatureEvidence`:
-   - `status` from the library (`pass`/`fail`/`neutral`/`temperror`/`permerror`), mapped to our vocabulary.
+   - `status` from the library (`pass`/`fail`/`neutral`/`temperror`/`permerror`), mapped to our vocabulary. mailauth stays in its default lenient mode; its `neutral` result with "body hash did not verify" maps to `fail` (P-3).
    - `failureStage`: `dns` | `key_parse` | `body_hash` | `header_signature` | `expired` | `policy`, derived from library comments and our own checks (we recompute nothing cryptographic ourselves).
    - `coverage`: signed header list vs present headers. Important headers that are unsigned (`Subject`, `Reply-To`, `To`) are flagged. `l=` gives partial-body coverage in bytes.
    - `key`: type, bit size, `key_fingerprint` (SPKI DER SHA-256), `t=y` testing flag.
@@ -227,7 +227,7 @@ interface DnsResolver {
 
 ### 3.8 Identity and domain analysis (`identity/`)
 
-- `domain.ts`: `tldts.parse()` gives `{hostname, domain (registrable), subdomain, publicSuffix}`. Both Unicode and Punycode forms are kept. Matching is `registrable === approved || hostname endsWith '.' + approved` (label boundary) **only when** the registry entry allows subdomains.
+- `domain.ts`: `tldts.parse()` with `allowPrivateDomains: true` (P-4) gives `{hostname, domain (registrable), subdomain, publicSuffix}`. Both Unicode and Punycode forms are kept. Matching is `registrable === approved || hostname endsWith '.' + approved` (label boundary) **only when** the registry entry allows subdomains.
 - `confusables.ts`: NFD → map each code point through `confusables.txt` → NFD gives the skeleton. Script detection via `\p{Script=...}` regex for mixed-script flags. Legitimate single-script IDNs are not penalized.
 - `similarity.ts`: OSA/Damerau distance on the registrable label (without the TLD), with the threshold scaled by length (≤1 for ≤6 chars, ≤2 otherwise), plus token comparison (`micros0ft-support` → tokens).
 - `matcher.ts`: claimed identity = best registry match on display-name/alias (normalized: case-fold, NFKC, whitespace and punctuation collapsed) **or** on domain. Returns candidates with reasons; never more than a top-N against the registry, so no global database is needed.
@@ -309,15 +309,16 @@ Typed failures (`application/problem+json`): `malformed_message`, `input_too_lar
 | `GET /api/v1/keys/history` | `?domain=&selector=` | Key observations |
 | `POST /api/v1/lab/run` | `LabScenario` (allowlisted ids + mutation list) | Runs the engine with lab deps |
 | `GET /api/v1/fixtures` · `POST /api/v1/evaluation/run` | split = dev / heldout | Metrics from real runs |
+| `POST /api/v1/lab/demo/:id` | none | Runs a labelled fixture against fixture DNS for the Analyze page demo; result marked simulated (A-5) |
 | `GET /api/v1/health` | none | `{status, version}` only |
 | `POST /api/v1/pair` | pairing code | Exchanges the one-time code for a session token |
 
-### 5.2 Request security pipeline (Fastify hooks, in order)
+### 5.2 Request security pipeline (Express middleware, in order)
 
 1. **Host guard**: `Host` must be exactly `127.0.0.1:<port>` or `localhost:<port>` (DNS-rebinding defence).
 2. **Origin guard**: `Origin` must be in the allowlist (`chrome-extension://<fixed-id>`, the dashboard origin). Requests with a missing Origin are allowed only from the CLI with the token.
 3. **Pairing auth**: `Authorization: Bearer <token>`, compared with `crypto.timingSafeEqual`. On first start the server generates a 6-word / 8-digit pairing code, printed to the console; the extension and dashboard exchange it once via `/pair` for a 256-bit session token, which they keep in `chrome.storage.local` / `sessionStorage`. Tokens are revocable from Settings.
-4. **Rate limit + body limit** (`bodyLimit: 10 MiB`).
+4. **Rate limit + body limit** (`express-rate-limit`; `express.raw({ limit: '10mb' })` is mounted only on the routes that need it, after auth).
 5. **Zod validation** of every body and param.
 6. **Redacting logger**: pino with redaction of `req.body`, `authorization` and `cookie`; route handlers log only analysis ids and timings.
 
@@ -406,7 +407,7 @@ flowchart LR
 | Engine unit | Vitest | Header parsing, address decoding, domain boundaries, skeletons, similarity, alignment, each rule (+/−), verdict table rows |
 | Crypto integration | Vitest + real signed fixtures + `FixtureResolver` | DKIM pass/fail/tamper/l=/multi-sig/rotated key/missing key/timeout; S/MIME valid/untrusted/tampered/wrong-key; OpenSSL cross-check |
 | Security regression | Vitest | Each invariant in `context.md` §8 has a named test (`invariant-03-forged-auth-results.test.ts`) |
-| Server | Vitest + `fastify.inject` | Host/Origin/token rejection, body limits, problem+json shapes, no body in logs (log capture) |
+| Server | Vitest + `supertest` | Host/Origin/token rejection, body limits, problem+json shapes, no body in logs (log capture) |
 | E2E | Playwright | Upload → inspect → edit registry → reanalyze; lab mutation; extension side panel loaded unpacked with a mocked Gmail API |
 | Evaluation | `tools/evaluate.ts` | Fixtures × labels → confusion matrix (binary subset), precision/recall/F1 with denominators, unknown rate, failure list → JSON consumed by the Evaluation page |
 
@@ -416,8 +417,8 @@ Fixtures are generated **deterministically** by `tools/gen-fixtures.ts`, using a
 
 ## 9. Runtime and deployment
 
-- `pnpm dev` runs the server (`tsx watch`, `127.0.0.1:8787`), the web app (Vite `5173`) and the extension (Vite + crxjs, loaded unpacked from `apps/extension/dist`).
-- `.env.example`: `PORT`, `ALLOWED_ORIGINS`, `EXTENSION_ID`, `DB_PATH`, `DNS_TIMEOUT_MS`, `RETENTION=off`. It contains no secrets. The OAuth client ID goes in the manifest; it is not a secret, but it is kept out of git if the team prefers (`manifest.local.json`).
+- `npm run dev` runs the server (`tsx watch`, `127.0.0.1:8787`), the web app (Vite `5173`) and the extension (Vite + crxjs, loaded unpacked from `apps/extension/dist`).
+- `.env.example`: `PORT`, `ALLOWED_ORIGINS`, `EXTENSION_ID`, `DATA_DIR`, `DNS_SERVERS`, `DNS_TIMEOUT_MS` (later `DB_PATH`, `RETENTION=off`). It contains no secrets. The OAuth client ID goes in the manifest; it is not a secret, but it is kept out of git if the team prefers (`manifest.local.json`).
 - Optional `docker compose up` runs the server only. The extension and Gmail OAuth always run in the user's Chrome.
 
 ---
