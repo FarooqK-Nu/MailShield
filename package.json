@@ -13,11 +13,13 @@
     "typecheck": "npm run typecheck --workspaces --if-present && tsc -p tsconfig.tools.json",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "test:e2e": "playwright test",
     "spike:eml": "tsx tools/verify-eml.ts",
     "check": "npm run typecheck && npm run lint && npm test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.4",
     "concurrently": "^10.0.7",
     "eslint": "^10.15.0",

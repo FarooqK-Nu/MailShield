@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["tools", "vitest.config.ts"]
+  "include": ["tools", "vitest.config.ts", "playwright.config.ts"]
 }
