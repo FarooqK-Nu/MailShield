@@ -1,6 +1,22 @@
-import type { AnalysisResult, Mailbox, StageName } from '@mailshield/contracts';
+import type { AnalysisResult, Evidence, Mailbox, StageName } from '@mailshield/contracts';
 import { EvidenceCard, StatusBadge, VerdictCard } from '@mailshield/ui';
 import { FlaskConical } from 'lucide-react';
+import { DomainInspector } from '../features/inspector/DomainInspector.tsx';
+import { RegistryMatches } from '../features/inspector/RegistryMatches.tsx';
+
+const SOURCES: Record<Evidence['source'], string> = {
+  local_crypto: 'Checked here',
+  trusted_receiver: 'Reported by your mail provider',
+  untrusted_header: 'Written in the message (not proof)',
+  registry: 'Your registry',
+  heuristic: 'Heuristic',
+  lab: 'Lab (simulated)',
+};
+
+const KINDS: Partial<Record<Evidence['kind'], string>> = {
+  dmarc: 'DMARC alignment (DKIM only)',
+  receiver: 'Authentication-Results header',
+};
 
 const STAGE_LABELS: Record<StageName, string> = {
   intake: 'Input limits',
@@ -22,6 +38,7 @@ const mailbox = (m: Mailbox) =>
 export function ResultView({ result }: { result: AnalysisResult }) {
   const { sender } = result;
   const simulated = result.inputSource === 'fixture' || result.inputSource === 'lab';
+  const otherEvidence = result.authentication.filter((e) => e.kind !== 'dkim');
   const rows: [string, string][] = [
     ['From', sender.from.map(mailbox).join(', ') || '(none)'],
     ['Reply-To', sender.replyTo.map(mailbox).join(', ') || '(none)'],
@@ -65,6 +82,45 @@ export function ResultView({ result }: { result: AnalysisResult }) {
           <EvidenceCard key={signature.evidenceId} signature={signature} />
         ))}
       </section>
+
+      <section aria-labelledby="claimed-title" className="space-y-3">
+        <h2 id="claimed-title" className="font-semibold">
+          Who it claims to be
+        </h2>
+        <RegistryMatches candidates={result.candidates} />
+      </section>
+
+      <section aria-labelledby="domains-title" className="space-y-3">
+        <h2 id="domains-title" className="font-semibold">
+          Domains in the message
+        </h2>
+        <DomainInspector domains={result.domains} />
+      </section>
+
+      {otherEvidence.length > 0 && (
+        <section aria-labelledby="evidence-title" className="space-y-3">
+          <h2 id="evidence-title" className="font-semibold">
+            Other evidence
+          </h2>
+          <ul className="space-y-3">
+            {otherEvidence.map((e) => (
+              <li
+                key={e.id}
+                className="rounded-lg border border-slate-300 p-4 text-sm dark:border-slate-700"
+              >
+                <p className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">{KINDS[e.kind] ?? e.kind}</span>
+                  <StatusBadge status={e.status} />
+                </p>
+                <p className="mt-1">{e.reason}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Source: {SOURCES[e.source]}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="stages-title">
         <h2 id="stages-title" className="mb-2 font-semibold">
