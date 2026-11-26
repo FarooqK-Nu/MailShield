@@ -191,7 +191,7 @@ interface DnsResolver {
 ```
 
 - `ValidatedDnsName` is a branded type that can only be created by `validateAuthName()`. It accepts only `<sel>._domainkey.<domain>`, `_dmarc.<domain>` and SPF-target domains, checks LDH labels and length, and rejects IP literals and single-label domains, except under `_dmarc.` where the RFC 9989 tree walk queries up to the TLD (P-1).
-- `LiveResolver`: `node:dns/promises` `Resolver` with a 3 s timeout and 2 tries, TTL-aware `lru-cache`, and a per-analysis lookup budget (e.g. ≤ 20 queries).
+- `LiveResolver`: `node:dns/promises` `Resolver` with a 3 s timeout and 2 tries, an `lru-cache` with a fixed 60 s lifetime (Node does not report TXT TTLs, A-4; transient failures are not cached), a per-analysis lookup budget of 20 queries and a 10 s total DNS deadline. Servers come from the system unless `DNS_SERVERS` is set (A-6).
 - `FixtureResolver` (in `packages/lab`): answers from `fixtures/dns/*.json`; unknown names give `nxdomain`. Can simulate `timeout`.
 - Adapter to `mailauth`: its `resolver(name, rrtype)` option is wrapped so that every query passes through validation and the budget. **(verify P0: mailauth resolver signature and error-code expectations.)**
 
@@ -309,6 +309,7 @@ Typed failures (`application/problem+json`): `malformed_message`, `input_too_lar
 | `GET /api/v1/keys/history` | `?domain=&selector=` | Key observations |
 | `POST /api/v1/lab/run` | `LabScenario` (allowlisted ids + mutation list) | Runs the engine with lab deps |
 | `GET /api/v1/fixtures` · `POST /api/v1/evaluation/run` | split = dev / heldout | Metrics from real runs |
+| `POST /api/v1/lab/demo/:id` | none | Runs a labelled fixture against fixture DNS for the Analyze page demo; result marked simulated (A-5) |
 | `GET /api/v1/health` | none | `{status, version}` only |
 | `POST /api/v1/pair` | pairing code | Exchanges the one-time code for a session token |
 
@@ -417,7 +418,7 @@ Fixtures are generated **deterministically** by `tools/gen-fixtures.ts`, using a
 ## 9. Runtime and deployment
 
 - `npm run dev` runs the server (`tsx watch`, `127.0.0.1:8787`), the web app (Vite `5173`) and the extension (Vite + crxjs, loaded unpacked from `apps/extension/dist`).
-- `.env.example`: `PORT`, `ALLOWED_ORIGINS`, `EXTENSION_ID`, `DB_PATH`, `DNS_TIMEOUT_MS`, `RETENTION=off`. It contains no secrets. The OAuth client ID goes in the manifest; it is not a secret, but it is kept out of git if the team prefers (`manifest.local.json`).
+- `.env.example`: `PORT`, `ALLOWED_ORIGINS`, `EXTENSION_ID`, `DATA_DIR`, `DNS_SERVERS`, `DNS_TIMEOUT_MS` (later `DB_PATH`, `RETENTION=off`). It contains no secrets. The OAuth client ID goes in the manifest; it is not a secret, but it is kept out of git if the team prefers (`manifest.local.json`).
 - Optional `docker compose up` runs the server only. The extension and Gmail OAuth always run in the user's Chrome.
 
 ---

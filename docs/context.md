@@ -48,7 +48,7 @@ The core idea to defend in the viva:
 | Validation/contracts | Zod | Shared by server, web, extension. |
 | MIME parsing | `postal-mime` (structured parse) + our own raw header reader over the original `Buffer` | Raw bytes stay untouched for signature checks; the parsed view is only for display and rules. |
 | Email auth | `mailauth` | `dkimVerify`, `dmarc`, `arc`, `spf` (fixtures only), `dkimSign` (lab). |
-| DNS | `node:dns/promises` `Resolver` with timeouts, wrapped in our resolver interface; fixture resolver for lab/tests | TTL-aware LRU cache (`lru-cache`). |
+| DNS | `node:dns/promises` `Resolver` with timeouts, wrapped in our resolver interface; fixture resolver for lab/tests | LRU cache (`lru-cache`) with a fixed 60 s lifetime (A-4); optional `DNS_SERVERS` (A-6). |
 | Key fingerprints | `crypto.createPublicKey(pem).export({ type: 'spki', format: 'der' })` → SHA-256 hex | Labelled as a *key fingerprint*. |
 | X.509 / CMS | `pkijs` + `asn1js`, `@peculiar/x509` (lab cert generation), `node:crypto` X509Certificate | Lab CA lives only in the lab trust store. |
 | OpenPGP (stretch) | `openpgp` (OpenPGP.js) | Standard v4/v6 fingerprints. |

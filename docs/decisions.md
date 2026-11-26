@@ -8,6 +8,9 @@ Short records of changes to the plan in `context.md`, `architecture.md` and the 
 |---|---|---|
 | A-1 | 2026-11-26 | Express 5 replaces Fastify (team choice). |
 | A-3 | 2026-11-26 | npm workspaces replace pnpm (team choice). |
+| A-4 | 2026-11-26 | The DNS cache keeps every answer for a fixed 60 seconds instead of each record's TTL: Node does not report TTLs for TXT records. Timeouts and server failures are not cached. |
+| A-5 | 2026-11-26 | New route `POST /api/v1/lab/demo/:id` lets the Analyze page run labelled demo fixtures against fixture DNS. Results are marked simulated; live analysis cannot reach fixture DNS. |
+| A-6 | 2026-11-26 | New optional `DNS_SERVERS` setting. On some Windows machines Node finds no working system DNS server; the service warns at startup when DNS is unreachable. |
 | A-2 | 2026-11-26 | Spec items no phase covered (Settings page, header paste, demo loading, side panel quick actions, lab avatar and custom message) are now assigned in the roadmap. |
 
 ## Approved proposals
