@@ -12,3 +12,4 @@ test-results/
 # Downloaded real mail must never be committed
 private/
 fixtures/.smime-tmp/
+.mailshield/
