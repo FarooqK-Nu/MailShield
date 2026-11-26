@@ -140,3 +140,23 @@ describe('RegistryRepo', () => {
     expect(r.list()).toEqual([]);
   });
 });
+
+describe('fictional seed registry', () => {
+  it('is a valid registry file on reserved domains only', () => {
+    const file = JSON.parse(
+      readFileSync(
+        new URL('../../../fixtures/registry/fictional-orgs.json', import.meta.url),
+        'utf8',
+      ),
+    );
+    const r = repo();
+    expect(r.importFile(RegistryFile.parse(file), 'seed').imported).toBe(3);
+    const domains = r
+      .list()
+      .flatMap((i) => [
+        ...i.domains.map((d) => d.domainAscii),
+        ...i.addresses.map((a) => a.address.split('@')[1]!),
+      ]);
+    expect(domains.every((d) => d.endsWith('.example'))).toBe(true);
+  });
+});
