@@ -14,7 +14,7 @@ const SOURCES: Record<Evidence['source'], string> = {
 };
 
 const KINDS: Partial<Record<Evidence['kind'], string>> = {
-  dmarc: 'DMARC alignment (DKIM only)',
+  dmarc: 'DMARC alignment (DKIM only; policy found by RFC 9989 DNS tree walk)',
   receiver: 'Authentication-Results header',
 };
 
