@@ -12,6 +12,10 @@ Short records of changes to the plan in `context.md`, `architecture.md` and the 
 | A-5 | 2026-11-26 | New route `POST /api/v1/lab/demo/:id` lets the Analyze page run labelled demo fixtures against fixture DNS. Results are marked simulated; live analysis cannot reach fixture DNS. |
 | A-6 | 2026-11-26 | New optional `DNS_SERVERS` setting. On some Windows machines Node finds no working system DNS server; the service warns at startup when DNS is unreachable. |
 | A-7 | 2026-11-27 | Database migrations are hand-written SQL files in `apps/server/src/db/migrations/`, applied by a small runner; `drizzle-kit` is not used. It pulls in an esbuild version with a known advisory. A test checks that the SQL and the Drizzle schema have the same columns. SQLite driver: `better-sqlite3`. |
+| A-8 | 2026-11-27 | The "trusted brand + DMARC fail" fixture is a local equivalent: uploads and fixtures never carry trusted receiver results (invariant 3). Acme publishes `p=reject` and only an unrelated domain's DKIM passes; R6 raises a caution and the verdict is "Identity unverified". Verdict row 3's trusted DMARC fail is covered by a unit test with a synthetic `trusted_receiver` record until Phase 4. |
+| A-9 | 2026-11-27 | Playwright is set up in Phase 3 (Chromium only) for the preview network assertion. |
+| A-10 | 2026-11-27 | Fixture and demo runs use `fixtures/registry/fictional-orgs.json` as their registry, never the local SQLite registry, so labels and demos stay deterministic. |
+| A-11 | 2026-11-27 | Only `user_trusted` and `independently_verified` registry entries can corroborate an identity (verdict rows 4 and 5). `unverified` entries still drive the mismatch rules; `revoked` entries are ignored. |
 | A-2 | 2026-11-26 | Spec items no phase covered (Settings page, header paste, demo loading, side panel quick actions, lab avatar and custom message) are now assigned in the roadmap. |
 
 ## Approved proposals
