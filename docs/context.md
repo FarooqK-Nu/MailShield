@@ -25,7 +25,7 @@ The core idea to defend in the viva:
 | D2 | **pnpm monorepo** with a pure `packages/engine` library separate from the HTTP server. | The engine runs in tests, the evaluation CLI, the lab and the server with no HTTP involved. Pure functions + injected dependencies (DNS, registry, clock) give deterministic results. |
 | D3 | **Zod schemas in `packages/contracts`** are the single source of truth for API payloads. | Backend validates with them, frontend/extension infer types from them, so the two cannot drift apart. |
 | D4 | **`mailauth`** for DKIM verify/sign, DMARC, ARC and fixture-only SPF. | Maintained, standards-focused, accepts a **custom DNS resolver** (essential for fixture DNS and the offline lab). Replaces `dkimpy`. |
-| D5 | **Fastify** instead of FastAPI. | Built-in JSON-schema validation, hooks for auth/origin checks, good performance, first-class TypeScript. |
+| D5 | **Express 5** instead of FastAPI. | Team preference and familiarity. Validation (Zod middleware), auth/origin guards and limits are ordinary middleware. |
 | D6 | **SQLite via `better-sqlite3` + Drizzle ORM** (with migrations). | Zero-ops local DB, typed queries, parameterized by default. |
 | D7 | **S/MIME via `pkijs`** (CMS SignedData verification), with the **OpenSSL CLI** as a cross-check in tests. | `node-forge` cannot fully verify PKCS#7 signatures; pkijs can. Never hand-roll crypto. |
 | D8 | **Pipeline emits stage events.** | One mechanism drives the dashboard's “authentication pipeline” view, the lab animation and test assertions. Animations replay real events instead of scripted ones. |
@@ -44,7 +44,7 @@ The core idea to defend in the viva:
 | Runtime | Node.js 24 LTS (or the current LTS) | `node:crypto`, `node:dns/promises`, `X509Certificate`. |
 | Language/build | TypeScript (strict), `tsx` for dev, `tsup` for building packages | ESM throughout. |
 | Monorepo | pnpm workspaces | `apps/*`, `packages/*`. |
-| HTTP server | Fastify + `@fastify/cors`, `@fastify/rate-limit`, `fastify-type-provider-zod` | Binds `127.0.0.1` only. |
+| HTTP server | Express 5 + `cors`, `express-rate-limit`, `pino-http`, own Zod validation middleware | Binds `127.0.0.1` only. `express.raw()` receives message bytes. |
 | Validation/contracts | Zod | Shared by server, web, extension. |
 | MIME parsing | `postal-mime` (structured parse) + our own raw header reader over the original `Buffer` | Raw bytes stay untouched for signature checks; the parsed view is only for display and rules. |
 | Email auth | `mailauth` | `dkimVerify`, `dmarc`, `arc`, `spf` (fixtures only), `dkimSign` (lab). |
@@ -172,7 +172,7 @@ Each rule is a pure function `(context) => Finding[]` with a stable `rule_id`, v
 ```text
 mailshield/
   context.md  architecture.md  masterroadmap_plan.md  README.md
-  apps/server/        Fastify API, auth plugins, DB, routes
+  apps/server/        Express API, security middleware, DB, routes
   apps/web/           React dashboard + Security Lab
   apps/extension/     MV3 side panel, content script, OAuth
   packages/contracts/ Zod schemas + inferred TS types

@@ -13,7 +13,7 @@ flowchart LR
     U --> EXT[MailShield side panel<br/>Chrome MV3]
     U --> WEB[MailShield dashboard + lab<br/>React]
     EXT -- OAuth token stays here --> GAPI[(Gmail API<br/>gmail.readonly)]
-    EXT -- raw .eml bytes + pairing token --> SRV[Local verification service<br/>Fastify on 127.0.0.1]
+    EXT -- raw .eml bytes + pairing token --> SRV[Local verification service<br/>Express on 127.0.0.1]
     WEB -- .eml upload / registry / lab --> SRV
     SRV -- validated DKIM/DMARC names only --> DNS[(Public DNS)]
     SRV --> DB[(SQLite<br/>registry, key history,<br/>opt-in redacted results)]
@@ -44,7 +44,7 @@ mailshield/
 │  │     ├─ server.ts           # bootstrap, bind 127.0.0.1
 │  │     ├─ app.ts              # buildApp(deps) for tests
 │  │     ├─ config.ts           # env parsing (zod), limits, allowed origins
-│  │     ├─ plugins/
+│  │     ├─ middleware/
 │  │     │  ├─ host-guard.ts    # reject Host ≠ 127.0.0.1/localhost:PORT
 │  │     │  ├─ origin-guard.ts  # allowlist chrome-extension://<id>, dashboard origin
 │  │     │  ├─ pairing-auth.ts  # bearer token check (constant-time compare)
@@ -312,12 +312,12 @@ Typed failures (`application/problem+json`): `malformed_message`, `input_too_lar
 | `GET /api/v1/health` | none | `{status, version}` only |
 | `POST /api/v1/pair` | pairing code | Exchanges the one-time code for a session token |
 
-### 5.2 Request security pipeline (Fastify hooks, in order)
+### 5.2 Request security pipeline (Express middleware, in order)
 
 1. **Host guard**: `Host` must be exactly `127.0.0.1:<port>` or `localhost:<port>` (DNS-rebinding defence).
 2. **Origin guard**: `Origin` must be in the allowlist (`chrome-extension://<fixed-id>`, the dashboard origin). Requests with a missing Origin are allowed only from the CLI with the token.
 3. **Pairing auth**: `Authorization: Bearer <token>`, compared with `crypto.timingSafeEqual`. On first start the server generates a 6-word / 8-digit pairing code, printed to the console; the extension and dashboard exchange it once via `/pair` for a 256-bit session token, which they keep in `chrome.storage.local` / `sessionStorage`. Tokens are revocable from Settings.
-4. **Rate limit + body limit** (`bodyLimit: 10 MiB`).
+4. **Rate limit + body limit** (`express-rate-limit`; `express.raw({ limit: '10mb' })` is mounted only on the routes that need it, after auth).
 5. **Zod validation** of every body and param.
 6. **Redacting logger**: pino with redaction of `req.body`, `authorization` and `cookie`; route handlers log only analysis ids and timings.
 
@@ -406,7 +406,7 @@ flowchart LR
 | Engine unit | Vitest | Header parsing, address decoding, domain boundaries, skeletons, similarity, alignment, each rule (+/−), verdict table rows |
 | Crypto integration | Vitest + real signed fixtures + `FixtureResolver` | DKIM pass/fail/tamper/l=/multi-sig/rotated key/missing key/timeout; S/MIME valid/untrusted/tampered/wrong-key; OpenSSL cross-check |
 | Security regression | Vitest | Each invariant in `context.md` §8 has a named test (`invariant-03-forged-auth-results.test.ts`) |
-| Server | Vitest + `fastify.inject` | Host/Origin/token rejection, body limits, problem+json shapes, no body in logs (log capture) |
+| Server | Vitest + `supertest` | Host/Origin/token rejection, body limits, problem+json shapes, no body in logs (log capture) |
 | E2E | Playwright | Upload → inspect → edit registry → reanalyze; lab mutation; extension side panel loaded unpacked with a mocked Gmail API |
 | Evaluation | `tools/evaluate.ts` | Fixtures × labels → confusion matrix (binary subset), precision/recall/F1 with denominators, unknown rate, failure list → JSON consumed by the Evaluation page |
 

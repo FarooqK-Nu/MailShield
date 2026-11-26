@@ -66,7 +66,7 @@ gantt
 
 | Member A | Member B |
 |---|---|
-| `packages/contracts`: `Evidence`, `SignatureEvidence`, `StageEvent`, `AnalysisResult` (v1) | `apps/server`: Fastify app factory, config (zod env), Host guard, Origin guard, pairing auth, body limit, problem+json errors, redacting logger |
+| `packages/contracts`: `Evidence`, `SignatureEvidence`, `StageEvent`, `AnalysisResult` (v1) | `apps/server`: Express app factory, config (zod env), Host guard, Origin guard, pairing auth, body limit, problem+json errors, redacting logger |
 | `engine/intake`: size/MIME limits; `engine/parse`: raw header reader (repeated headers, offsets), address parsing with RFC 2047 + IDN, `postal-mime` integration | `POST /api/v1/analyze`, `/analyze/headers`, `/health`, `/pair` |
 | `engine/dns`: `ValidatedDnsName`, `LiveResolver` with timeout/cache/budget, mailauth adapter | `apps/web`: Analyze page with drag-and-drop, progress, error/retry, raw JSON result view; pairing screen |
 | `engine/authentication/dkim.ts`: all signatures, tag display, coverage (signed vs unsigned headers, `l=`), key type/size, SPKI fingerprint | `packages/ui`: `StatusBadge` (icon+text), `EvidenceCard`, minimal `VerdictCard` |
