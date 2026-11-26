@@ -1,6 +1,8 @@
 import { LiveResolver } from '@mailshield/engine';
 import { buildApp } from './app.ts';
 import { readConfig } from './config.ts';
+import { openDatabase } from './db/open.ts';
+import { RegistryRepo } from './db/registry-repo.ts';
 import { dnsWarning } from './dns-check.ts';
 import { fileSessionStore, Pairing } from './middleware/pairing-auth.ts';
 import { createLogger } from './middleware/redact-logger.ts';
@@ -18,9 +20,12 @@ const resolver = new LiveResolver({
 });
 void dnsWarning(resolver).then((warning) => warning && console.warn(warning));
 
+const registry = new RegistryRepo(openDatabase(config.dbPath));
+
 const app = buildApp({
   config,
   resolver,
+  registry,
   pairing,
   logger: createLogger(),
   clock: () => new Date(),

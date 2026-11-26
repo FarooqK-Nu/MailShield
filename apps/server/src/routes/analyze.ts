@@ -1,5 +1,5 @@
 import { InputSource, MAX_MESSAGE_BYTES } from '@mailshield/contracts';
-import { analyze, AnalysisError, type DnsResolver } from '@mailshield/engine';
+import { analyze, AnalysisError, type DnsResolver, type RegistryPort } from '@mailshield/engine';
 import express, { Router, type Request, type RequestHandler } from 'express';
 import type { Logger } from 'pino';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { sendProblem } from '../middleware/errors.ts';
 
 export interface AnalyzeDeps {
   resolver: DnsResolver;
+  registry: RegistryPort;
   clock: () => Date;
   logger: Logger;
   extensionOrigin: string;
@@ -34,7 +35,11 @@ export function analyzeRoutes(deps: AnalyzeDeps, guards: RequestHandler[]): Rout
 
   const run = async (input: Parameters<typeof analyze>[0]) => {
     const started = performance.now();
-    const result = await analyze(input, { resolver: deps.resolver, clock: deps.clock });
+    const result = await analyze(input, {
+      resolver: deps.resolver,
+      registry: deps.registry,
+      clock: deps.clock,
+    });
     deps.logger.info(
       { analysisId: result.analysisId, ms: Math.round(performance.now() - started) },
       'analysis complete',

@@ -4,8 +4,10 @@ import { join } from 'node:path';
 import { AnalysisResult, MAX_MESSAGE_BYTES, Problem } from '@mailshield/contracts';
 import { FixtureResolver, loadFixture } from '@mailshield/lab';
 import request from 'supertest';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
+import { openDatabase } from '../src/db/open.ts';
+import { RegistryRepo } from '../src/db/registry-repo.ts';
 import { readConfig } from '../src/config.ts';
 import { dnsWarning } from '../src/dns-check.ts';
 import { fileSessionStore, Pairing, type SessionStore } from '../src/middleware/pairing-auth.ts';
@@ -24,9 +26,11 @@ function setup() {
   // The "live" resolver knows nothing, so fixture mail can only verify through the lab.
   const resolver = new FixtureResolver({});
   const pairing = new Pairing(store, (code) => codes.push(code));
+  const registry = new RegistryRepo(openDatabase(':memory:'));
   const app = buildApp({
     config,
     resolver,
+    registry,
     pairing,
     logger: createLogger({ write: (line) => void logs.push(line) }),
     clock: () => new Date(legit.label.now),
@@ -34,7 +38,7 @@ function setup() {
   const post = (path: string) =>
     request(app).post(`/api/v1${path}`).set('Host', HOST).set('Origin', WEB);
   const pair = async () => (await post('/pair').send({ code: codes.at(-1) })).body.token as string;
-  return { app, post, pair, codes, logs, resolver, saved: () => saved };
+  return { app, post, pair, codes, logs, resolver, registry, saved: () => saved };
 }
 
 const upload = (ctx: ReturnType<typeof setup>, token: string, body: Buffer) =>
@@ -261,5 +265,96 @@ describe('logging (invariant 6)', () => {
     expect(output).not.toContain(canary);
     expect(output).not.toContain(token);
     expect(output).not.toContain(code);
+  });
+});
+
+describe('registry routes', () => {
+  const ctx = setup();
+  let token = '';
+  beforeAll(async () => {
+    token = await ctx.pair();
+  });
+  // Supertest requests are thenables, so this must not be async.
+  const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string) =>
+    request(ctx.app)
+      [method](`/api/v1${path}`)
+      .set('Host', HOST)
+      .set('Origin', WEB)
+      .set('Authorization', `Bearer ${token}`);
+  const acme = {
+    kind: 'organization',
+    displayName: 'Acme Corporation',
+    aliases: ['Acme'],
+    domains: [{ domain: 'acme.example', includeSubdomains: true }],
+  };
+
+  it.each(['/identities', '/audit', '/registry/export'])(
+    'requires a token for %s',
+    async (path) => {
+      const res = await request(ctx.app).get(`/api/v1${path}`).set('Host', HOST).set('Origin', WEB);
+      expect(res.status).toBe(401);
+    },
+  );
+
+  it('creates, reads, updates, lists and deletes with an audit trail', async () => {
+    const created = await call('post', '/identities').send(acme);
+    expect(created.status).toBe(201);
+    const id = created.body.id as string;
+
+    expect((await call('get', `/identities/${id}`)).body.displayName).toBe('Acme Corporation');
+    const patched = await call('patch', `/identities/${id}`).send({ trustState: 'user_trusted' });
+    expect(patched.body).toMatchObject({
+      trustState: 'user_trusted',
+      aliases: [{ alias: 'Acme' }],
+    });
+    expect((await call('get', '/identities?q=acme')).body.identities).toHaveLength(1);
+
+    expect((await call('delete', `/identities/${id}`)).status).toBe(204);
+    expect((await call('get', '/identities')).body.identities).toEqual([]);
+    const audit = await call('get', `/identities/${id}/audit`);
+    expect(audit.body.events.map((e: { action: string }) => e.action)).toEqual([
+      'delete',
+      'update',
+      'create',
+    ]);
+  });
+
+  it('rejects bad input as problem+json', async () => {
+    const bad = await call('post', '/identities').send({ ...acme, kind: 'robot' });
+    expect(bad.status).toBe(400);
+    const domain = await call('post', '/identities').send({
+      ...acme,
+      domains: [{ domain: 'com' }],
+    });
+    expect(Problem.parse(JSON.parse(domain.text))).toMatchObject({
+      type: 'invalid_request',
+      detail: '“com” is not a registrable domain.',
+    });
+    expect((await call('get', '/identities/not-a-uuid')).status).toBe(400);
+    expect((await call('get', `/identities/${crypto.randomUUID()}`)).status).toBe(404);
+  });
+
+  it('refuses a private key with a specific problem type', async () => {
+    const { id } = (await call('post', '/identities').send(acme)).body;
+    const res = await call('post', `/identities/${id}/keys`).send({
+      pem: '-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----',
+      trustSource: 'pasted',
+    });
+    expect(res.status).toBe(422);
+    expect(JSON.parse(res.text).type).toBe('private_key_rejected');
+  });
+
+  it('exports and re-imports the registry', async () => {
+    const file = (await call('get', '/registry/export')).body;
+    expect(file.format).toBe('mailshield-registry');
+    const res = await call('post', '/registry/import').send(file);
+    expect(res.body.imported).toBe(0);
+    expect(res.body.skipped.length).toBeGreaterThan(0);
+  });
+
+  it('uses the registry during analysis', async () => {
+    const res = await upload(ctx, token, legit.raw);
+    const result = AnalysisResult.parse(res.body);
+    expect(result.candidates[0]).toMatchObject({ displayName: 'Acme Corporation' });
   });
 });

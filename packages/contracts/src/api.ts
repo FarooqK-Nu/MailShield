@@ -35,10 +35,18 @@ export const ProblemType = z.enum([
   'invalid_request',
   'rate_limited',
   'not_found',
+  'conflict',
+  'private_key_rejected',
   'internal_error',
 ]);
 export type ProblemType = z.infer<typeof ProblemType>;
 
 /** Body of every `application/problem+json` response. */
-export const Problem = z.object({ type: ProblemType, status: z.number(), title: z.string() });
+export const Problem = z.object({
+  type: ProblemType,
+  status: z.number(),
+  title: z.string(),
+  /** A specific, user-facing explanation, when there is one. */
+  detail: z.string().optional(),
+});
 export type Problem = z.infer<typeof Problem>;

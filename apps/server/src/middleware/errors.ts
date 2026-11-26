@@ -3,6 +3,8 @@ import { AnalysisError } from '@mailshield/engine';
 import type { ErrorRequestHandler, RequestHandler, Response } from 'express';
 import type { Logger } from 'pino';
 import { ZodError } from 'zod';
+import { KeyMaterialError } from '../db/public-key.ts';
+import { RegistryError } from '../db/registry-repo.ts';
 
 const PROBLEMS: Record<ProblemType, [status: number, title: string]> = {
   malformed_message: [422, 'The input is not a readable email message.'],
@@ -17,11 +19,22 @@ const PROBLEMS: Record<ProblemType, [status: number, title: string]> = {
   invalid_request: [400, 'The request is not valid.'],
   rate_limited: [429, 'Too many requests. Wait a moment and try again.'],
   not_found: [404, 'Not found.'],
+  conflict: [409, 'This conflicts with an existing entry.'],
+  private_key_rejected: [
+    422,
+    'Private keys are never accepted. Paste a certificate or public key.',
+  ],
   internal_error: [500, 'The service could not complete the request.'],
 };
 
-export function sendProblem(res: Response, type: ProblemType, status = PROBLEMS[type][0]): void {
-  const problem: Problem = { type, status, title: PROBLEMS[type][1] };
+/** `detail` is our own text, at most quoting the caller's registry input; never library errors. */
+export function sendProblem(
+  res: Response,
+  type: ProblemType,
+  status = PROBLEMS[type][0],
+  detail?: string,
+): void {
+  const problem: Problem = { type, status, title: PROBLEMS[type][1], ...(detail && { detail }) };
   res.status(status).type('application/problem+json').send(JSON.stringify(problem));
 }
 
@@ -35,6 +48,11 @@ export function errorHandler(logger: Logger): ErrorRequestHandler {
   return (error, _req, res, next) => {
     if (res.headersSent) return next(error);
     if (error instanceof AnalysisError) return sendProblem(res, error.type);
+    if (error instanceof RegistryError)
+      return sendProblem(res, error.type, undefined, error.message);
+    if (error instanceof KeyMaterialError) {
+      return sendProblem(res, error.type, undefined, error.message);
+    }
     if (error instanceof ZodError) return sendProblem(res, 'invalid_request');
 
     const { type, status } = error as { type?: string; status?: number };
