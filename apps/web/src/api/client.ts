@@ -1,5 +1,21 @@
-import { AnalysisResult, FixtureList, PairResponse, Problem } from '@mailshield/contracts';
-import type { z } from 'zod';
+import {
+  AnalysisResult,
+  AuditList,
+  FixtureList,
+  Identity,
+  IdentityList,
+  ImportResult,
+  PairResponse,
+  Problem,
+  PublicKeyRecord,
+  RegistryFile,
+  type IdentityInput,
+  type IdentityKind,
+  type IdentityPatch,
+  type KeyEnrollRequest,
+  type TrustState,
+} from '@mailshield/contracts';
+import { z } from 'zod';
 
 const TOKEN_KEY = 'mailshield.token';
 
@@ -37,10 +53,12 @@ async function request<T>(schema: z.ZodType<T>, path: string, init: RequestInit)
   } catch {
     throw new ApiError('unavailable', 'The local service is not reachable.');
   }
-  const body: unknown = await res.json().catch(() => null);
+  const body: unknown = res.status === 204 ? null : await res.json().catch(() => null);
   if (!res.ok) {
     const problem = Problem.safeParse(body);
-    if (problem.success) throw new ApiError(problem.data.type, problem.data.title);
+    if (problem.success) {
+      throw new ApiError(problem.data.type, problem.data.detail ?? problem.data.title);
+    }
     throw new ApiError('unavailable', `The local service is not reachable (HTTP ${res.status}).`);
   }
   const parsed = schema.safeParse(body);
@@ -50,9 +68,42 @@ async function request<T>(schema: z.ZodType<T>, path: string, init: RequestInit)
   return parsed.data;
 }
 
+export interface IdentityFilter {
+  q?: string;
+  kind?: IdentityKind;
+  trustState?: TrustState;
+}
+
 export function createClient(token: string) {
   const auth = { Authorization: `Bearer ${token}` };
+  const sendJson = (method: string, body: unknown): RequestInit => ({
+    method,
+    headers: { ...auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const id = (value: string) => encodeURIComponent(value);
   return {
+    identities: (filter: IdentityFilter = {}) => {
+      const query = new URLSearchParams(
+        Object.entries(filter).filter((e): e is [string, string] => !!e[1]),
+      );
+      return request(IdentityList, `/identities?${query}`, { headers: auth });
+    },
+    createIdentity: (input: IdentityInput) =>
+      request(Identity, '/identities', sendJson('POST', input)),
+    updateIdentity: (identityId: string, patch: IdentityPatch) =>
+      request(Identity, `/identities/${id(identityId)}`, sendJson('PATCH', patch)),
+    deleteIdentity: (identityId: string) =>
+      request(z.null(), `/identities/${id(identityId)}`, { method: 'DELETE', headers: auth }),
+    addKey: (identityId: string, key: KeyEnrollRequest) =>
+      request(PublicKeyRecord, `/identities/${id(identityId)}/keys`, sendJson('POST', key)),
+    audit: (identityId?: string) =>
+      request(AuditList, identityId ? `/identities/${id(identityId)}/audit` : '/audit', {
+        headers: auth,
+      }),
+    exportRegistry: () => request(RegistryFile, '/registry/export', { headers: auth }),
+    importRegistry: (file: unknown) =>
+      request(ImportResult, '/registry/import', sendJson('POST', file)),
     analyzeFile: (file: Blob) =>
       request(AnalysisResult, '/analyze', {
         method: 'POST',
