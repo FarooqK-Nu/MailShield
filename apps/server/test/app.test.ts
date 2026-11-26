@@ -275,12 +275,13 @@ describe('registry routes', () => {
     token = await ctx.pair();
   });
   // Supertest requests are thenables, so this must not be async.
-  const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string) =>
-    request(ctx.app)
-      [method](`/api/v1${path}`)
+  const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string) => {
+    const client = request(ctx.app);
+    return client[method](`/api/v1${path}`)
       .set('Host', HOST)
       .set('Origin', WEB)
       .set('Authorization', `Bearer ${token}`);
+  };
   const acme = {
     kind: 'organization',
     displayName: 'Acme Corporation',
