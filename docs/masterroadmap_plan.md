@@ -71,6 +71,7 @@ gantt
 | `engine/dns`: `ValidatedDnsName`, `LiveResolver` with timeout/cache/budget, mailauth adapter | `apps/web`: Analyze page with drag-and-drop, progress, error/retry, raw JSON result view; pairing screen |
 | `engine/authentication/dkim.ts`: all signatures, tag display, coverage (signed vs unsigned headers, `l=`), key type/size, SPKI fingerprint | `packages/ui`: `StatusBadge` (icon+text), `EvidenceCard`, minimal `VerdictCard` |
 | Pipeline with `StageEvent` emission | Typed API client from contracts |
+| | Analyze page: paste raw headers (unavailable checks shown) and “load demo” fixture; filename and size display; light/dark theme |
 | First fixtures: `legit-signed`, `body-tampered`, `unsigned`, `missing-dns-key`, `dns-timeout` + `FixtureResolver` stub | |
 
 **Deliverables:** upload an `.eml` in the dashboard and see each DKIM signature with real status, domain, selector, fingerprint and coverage.
@@ -136,6 +137,7 @@ gantt
 | Verify that `gmail_api` source is the only path to `trusted_receiver` (invariant test) | Side panel: connect/disconnect, consent explanation (“read-only can read all; we fetch only what you select”), selection confirmation, Analyze/Reanalyze, stage progress, verdict + identity + auth cards, findings, quick actions |
 | | Stale-result protection (`messageRef` check); rapid-switch test |
 | | Fallbacks: message picker (explicit consent), `.eml` drop zone, “Show original” instructions |
+| | Side panel quick actions: open full report, view raw headers, copy fingerprint, open registry entry, mark finding reviewed (local); privacy settings. “Export redacted report” is enabled in Phase 6 |
 
 **Exit criteria:**
 - [ ] On a test account: open a message → panel confirms the From/Subject → Analyze → real result.
@@ -156,6 +158,7 @@ gantt
 | `POST /lab/run` with allowlisted scenario IDs only; in-memory lab session; runtime assertion that the live paths never get lab deps | Animated evidence trail: play/pause/step/speed/reset, hover inspection; consumes real `StageEvent`s; “simulated” badges |
 | Fingerprint/avalanche demo: same key/two messages, Eve's key, rotation; body digest vs key fingerprint shown separately | Before/after mode: standard auth only vs with registry rules |
 | | Guided challenges + downloadable synthetic report + reset |
+| | Scenario builder: change dummy avatar; compose a short local test message |
 
 **Exit criteria:**
 - [ ] Changing one character in the body flips DKIM to `fail` and shows a completely different body hash.
@@ -176,6 +179,7 @@ gantt
 | R2 with enrolled keys; R8 first-contact/key-change using `KeyObservation` | Key History page: per domain+selector timeline, rotation vs unexpected change vs revoked |
 | Key observation recording (opt-in) with rotation classification | Redacted report export (JSON + printable HTML), with no subject/body |
 | OpenSSL `cms -verify` cross-check tests | Lab “personal verification challenge” flow |
+| | Settings page: consent/privacy, history retention (off by default), rule sensitivity (audited), DNS behaviour, theme, local data deletion and reset, session token revocation |
 
 **Exit criteria:**
 - [ ] Alice's signed message with her key enrolled → `corroborated_personal`.
