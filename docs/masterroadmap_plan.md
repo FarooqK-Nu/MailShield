@@ -98,10 +98,10 @@ gantt
 | Unit tests: boundary cases (`brand.example.net`, `example.com.evil.net`), IDN, confusables | Seed registry with **fictional** orgs (Acme, Globex) on reserved domains; optional real brands only from reviewed official sites, with source URLs |
 
 **Exit criteria:**
-- [ ] `micros0ft-support.example` and a Cyrillic-`а` variant are flagged against a registry entry, with the exact differing characters shown.
-- [ ] `acme.example.net` is **not** treated as `acme.example`.
-- [ ] A forged `Authentication-Results: mx.google.com; dkim=pass` in an upload is shown as `untrusted_header` (invariant test).
-- [ ] Registry changes are audited and need UI confirmation.
+- [x] `micros0ft-support.example` and a Cyrillic-`а` variant are flagged against a registry entry, with the exact differing characters shown.
+- [x] `acme.example.net` is **not** treated as `acme.example`.
+- [x] A forged `Authentication-Results: mx.google.com; dkim=pass` in an upload is shown as `untrusted_header` (invariant test).
+- [x] Registry changes are audited and need UI confirmation (audit covered by tests; the confirmation dialog has no E2E test until Playwright is set up).
 
 ---
 
