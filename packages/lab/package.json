@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@mailshield/engine": "workspace:*",
+    "@mailshield/engine": "*",
     "@peculiar/x509": "^3.1.0",
     "asn1js": "^4.1.0",
     "mailauth": "^8.1.0",

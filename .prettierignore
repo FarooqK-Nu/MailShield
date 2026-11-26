@@ -1,6 +1,6 @@
 fixtures/
 docs/
 packages/engine/data/
-pnpm-lock.yaml
+package-lock.json
 dist/
 CLAUDE.md

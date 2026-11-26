@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@mailshield/contracts": "workspace:*",
+    "@mailshield/contracts": "*",
     "mailauth": "^8.1.0",
     "pkijs": "^4.0.1",
     "postal-mime": "^4.2.1",

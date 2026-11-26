@@ -9,8 +9,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@mailshield/contracts": "workspace:*",
-    "@mailshield/engine": "workspace:*",
+    "@mailshield/contracts": "*",
+    "@mailshield/engine": "*",
     "cors": "^2.8.6",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.5",

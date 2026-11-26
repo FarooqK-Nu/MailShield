@@ -3,19 +3,19 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=24",
+    "npm": ">=11"
   },
   "scripts": {
-    "dev": "concurrently -k -n server,web,ext \"pnpm --filter @mailshield/server dev\" \"pnpm --filter @mailshield/web dev\" \"pnpm --filter @mailshield/extension dev\"",
-    "build": "pnpm -r build",
+    "dev": "concurrently -k -n server,web,ext \"npm run dev -w @mailshield/server\" \"npm run dev -w @mailshield/web\" \"npm run dev -w @mailshield/extension\"",
+    "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
-    "typecheck": "pnpm -r typecheck && tsc -p tsconfig.tools.json",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc -p tsconfig.tools.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "spike:eml": "tsx tools/verify-eml.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm test"
+    "check": "npm run typecheck && npm run lint && npm test"
   },
-  "packageManager": "pnpm@11.29.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.19.4",
@@ -27,5 +27,9 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "^5.1.2"
-  }
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }
