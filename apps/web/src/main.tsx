@@ -4,11 +4,13 @@ import { createRoot } from 'react-dom/client';
 import { createClient, session } from './api/client.ts';
 import { PairingScreen } from './PairingScreen.tsx';
 import { Analyze } from './routes/Analyze.tsx';
+import { Overview } from './routes/Overview.tsx';
 import { Registry } from './routes/Registry.tsx';
 import './styles.css';
 import { useTheme } from './theme.ts';
 
 const PAGES = [
+  { hash: '#/', label: 'Overview' },
   { hash: '#/analyze', label: 'Analyze' },
   { hash: '#/registry', label: 'Registry' },
 ] as const;
@@ -16,8 +18,7 @@ type Page = (typeof PAGES)[number]['hash'];
 
 /** Hash routing keeps the dashboard a static page with no server-side routes. */
 function usePage(): Page {
-  const read = () =>
-    (PAGES.find((p) => p.hash === window.location.hash)?.hash ?? '#/analyze') as Page;
+  const read = () => (PAGES.find((p) => p.hash === window.location.hash)?.hash ?? '#/') as Page;
   const [page, setPage] = useState(read);
   useEffect(() => {
     const onChange = () => setPage(read());
@@ -40,7 +41,7 @@ function App() {
   const forget = useCallback(() => keep(null), [keep]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
+    <div className={`mx-auto px-4 py-6 ${page === '#/analyze' ? 'max-w-7xl' : 'max-w-3xl'}`}>
       <header className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="mr-auto text-2xl font-semibold">MailShield</h1>
         {client && (
@@ -64,6 +65,7 @@ function App() {
       </header>
       <main>
         {client && page === '#/registry' && <Registry client={client} onUnauthorized={forget} />}
+        {client && page === '#/' && <Overview />}
         {client && page === '#/analyze' && <Analyze client={client} onUnauthorized={forget} />}
         {!client && <PairingScreen onPaired={keep} />}
       </main>
