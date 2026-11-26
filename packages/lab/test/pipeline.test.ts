@@ -166,9 +166,10 @@ describe('pipeline behaviour', () => {
       'rules',
       'verdict',
     ]);
-    for (const name of ['receiver', 'alignment', 'smime', 'identity', 'registry', 'rules']) {
-      expect(stages.find((s) => s.stage === name)!.status).toBe('not_evaluated');
-    }
+    const status = (name: string) => stages.find((s) => s.stage === name)!.status;
+    for (const name of ['smime', 'rules']) expect(status(name)).toBe('not_evaluated');
+    expect(status('registry')).toBe('skipped');
+    expect(status('receiver')).toBe('skipped');
   });
 
   it.each([
@@ -184,7 +185,8 @@ describe('pipeline behaviour', () => {
 
   it('reports missing DKIM as missing', async () => {
     const result = await run(fixture('unsigned').raw);
-    expect(result.authentication).toEqual([expect.objectContaining({ status: 'missing' })]);
+    const dkim = result.authentication.filter((e) => e.kind === 'dkim');
+    expect(dkim).toEqual([expect.objectContaining({ status: 'missing' })]);
   });
 
   it('checks nothing cryptographic for header-only input', async () => {

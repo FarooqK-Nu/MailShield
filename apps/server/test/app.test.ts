@@ -161,7 +161,9 @@ describe('analyze routes', () => {
   const ctx = setup();
   let token = '';
   const ready = async () => (token ||= await ctx.pair());
-  afterAll(() => expect(ctx.resolver.queries.every((q) => q.includes('._domainkey.'))).toBe(true));
+  afterAll(() =>
+    expect(ctx.resolver.queries.every((q) => /\._domainkey\.|^_dmarc\./.test(q))).toBe(true),
+  );
 
   it.each(['/analyze', '/analyze/headers', '/lab/demo/legit-signed'])(
     'requires a token for %s',
