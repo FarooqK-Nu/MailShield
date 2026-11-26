@@ -208,6 +208,8 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     messageRef: input.messageRef,
     sender,
     claimedIdentity: null,
+    domains: [],
+    candidates: [],
     authentication,
     signatures,
     findings: [],

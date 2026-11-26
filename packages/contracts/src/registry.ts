@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
 /** Trusted identity registry (docs/context.md §5, docs/architecture.md §5.3). */
-export const TrustState = z.enum(['unverified', 'user_trusted', 'independently_verified', 'revoked']);
+export const TrustState = z.enum([
+  'unverified',
+  'user_trusted',
+  'independently_verified',
+  'revoked',
+]);
 export type TrustState = z.infer<typeof TrustState>;
 
 export const IdentityKind = z.enum(['organization', 'person']);
@@ -73,7 +78,11 @@ export const IdentityInput = z.strictObject({
   kind: IdentityKind,
   displayName: Text(200),
   trustState: TrustState.default('unverified'),
-  provenanceUrl: z.url({ protocol: /^https?$/ }).max(2000).nullable().default(null),
+  provenanceUrl: z
+    .url({ protocol: /^https?$/ })
+    .max(2000)
+    .nullable()
+    .default(null),
   notes: z.string().max(4000).nullable().default(null),
   lastReviewed: z.iso.datetime().nullable().default(null),
   aliases: z.array(Text(200)).max(50).default([]),

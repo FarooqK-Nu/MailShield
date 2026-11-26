@@ -7,6 +7,7 @@ import {
   RiskLevel,
   Verdict,
 } from './vocabulary.ts';
+import { DomainRelationship, IdentityKind, TrustState } from './registry.ts';
 
 const Details = z.record(z.string(), z.unknown());
 
@@ -98,6 +99,80 @@ export type SenderView = z.infer<typeof SenderView>;
 export const ClaimedIdentity = z.object({ displayName: z.string(), address: z.string() });
 export type ClaimedIdentity = z.infer<typeof ClaimedIdentity>;
 
+export const CodePoint = z.object({
+  char: z.string(),
+  codePoint: z.string(),
+  script: z.string(),
+  looksLike: z.string().nullable(),
+});
+export type CodePoint = z.infer<typeof CodePoint>;
+
+/** One domain from the message, split at its public-suffix boundary (domain inspector). */
+export const DomainInspection = z.object({
+  /** Which header the domain came from. */
+  role: z.enum(['from', 'sender', 'reply_to', 'return_path', 'dkim']),
+  ascii: z.string(),
+  unicode: z.string(),
+  registrable: z.string().nullable(),
+  registrableUnicode: z.string().nullable(),
+  subdomain: z.string(),
+  publicSuffix: z.string().nullable(),
+  isIdn: z.boolean(),
+  scripts: z.array(z.string()),
+  mixedScript: z.boolean(),
+  /** Code points of the registrable label, Unicode form. */
+  codePoints: z.array(CodePoint),
+});
+export type DomainInspection = z.infer<typeof DomainInspection>;
+
+export const CharDiff = z.object({
+  index: z.number(),
+  kind: z.enum(['substituted', 'inserted', 'removed', 'swapped']),
+  observed: z.string(),
+  expected: z.string(),
+  observedCodePoints: z.array(z.string()),
+});
+export type CharDiff = z.infer<typeof CharDiff>;
+
+export const MatchReason = z.enum([
+  'trusted_address',
+  'approved_domain',
+  'display_name',
+  'alias',
+  'name_contains',
+  'lookalike_name',
+  'lookalike_domain',
+  'brand_in_subdomain',
+  'brand_token',
+]);
+export type MatchReason = z.infer<typeof MatchReason>;
+
+export const DomainLookalike = z.object({
+  observed: z.string(),
+  approved: z.string(),
+  strength: z.enum(['strong', 'weak']),
+  reasons: z.array(z.string()),
+  distance: z.number(),
+  matchedToken: z.string().nullable(),
+  diff: z.array(CharDiff),
+});
+export type DomainLookalike = z.infer<typeof DomainLookalike>;
+
+/** A registry identity the message may be claiming to be, with the reasons why. */
+export const IdentityCandidate = z.object({
+  identityId: z.string(),
+  displayName: z.string(),
+  kind: IdentityKind,
+  trustState: TrustState,
+  score: z.number(),
+  reasons: z.array(MatchReason),
+  /** Approved domain the From domain falls under, when it does. */
+  approvedDomain: z.object({ domain: z.string(), relationship: DomainRelationship }).nullable(),
+  lookalikes: z.array(DomainLookalike),
+  explanation: z.array(z.string()),
+});
+export type IdentityCandidate = z.infer<typeof IdentityCandidate>;
+
 export const Finding = z.object({
   ruleId: z.string(),
   ruleVersion: z.string(),
@@ -159,6 +234,9 @@ export const AnalysisResult = z.object({
   messageRef: z.string().optional(),
   sender: SenderView,
   claimedIdentity: ClaimedIdentity.nullable(),
+  domains: z.array(DomainInspection),
+  /** Best registry matches, strongest first; empty when nothing in the registry matches. */
+  candidates: z.array(IdentityCandidate),
   authentication: z.array(Evidence),
   signatures: z.array(SignatureEvidence),
   findings: z.array(Finding),
