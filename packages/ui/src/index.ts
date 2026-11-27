@@ -6,3 +6,10 @@ export { Findings } from './Findings.tsx';
 export { IdentityComparison } from './IdentityComparison.tsx';
 export { RefLinks } from './RefLinks.tsx';
 export { anchorId, targetOf, type InspectorTab, type Target } from './targets.ts';
+export { PersonalSignatureCard } from './PersonalSignatureCard.tsx';
+export {
+  buildRedactedReport,
+  downloadFile,
+  reportToHtml,
+  type RedactedReport,
+} from './redacted-report.ts';

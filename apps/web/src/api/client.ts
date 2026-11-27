@@ -5,16 +5,22 @@ import {
   Identity,
   IdentityList,
   ImportResult,
+  KeyHistoryList,
+  KeyPreview,
+  LabPersonalResponse,
   LabRunResponse,
   PairResponse,
   Problem,
   PublicKeyRecord,
   RegistryFile,
+  Settings,
   type IdentityInput,
   type IdentityKind,
   type IdentityPatch,
   type KeyEnrollRequest,
+  type LabPersonalScenario,
   type LabScenario,
+  type SettingsInput,
   type TrustState,
 } from '@mailshield/contracts';
 import { z } from 'zod';
@@ -118,6 +124,25 @@ export function createClient(token: string) {
         headers: { ...auth, 'Content-Type': 'text/plain' },
         body: text,
       }),
+    previewKey: (pem: string) => request(KeyPreview, '/keys/preview', sendJson('POST', { pem })),
+    settings: () => request(Settings, '/settings', { headers: auth }),
+    saveSettings: (input: SettingsInput) => request(Settings, '/settings', sendJson('PUT', input)),
+    resetSettings: () => request(Settings, '/settings/reset', { method: 'POST', headers: auth }),
+    settingsAudit: () => request(AuditList, '/settings/audit', { headers: auth }),
+    keyHistory: () => request(KeyHistoryList, '/key-history', { headers: auth }),
+    revokeObserved: (observationId: string) =>
+      request(KeyHistoryList, `/key-history/${id(observationId)}/revoke`, {
+        method: 'POST',
+        headers: auth,
+      }),
+    clearKeyHistory: () =>
+      request(z.object({ deleted: z.number() }), '/key-history', {
+        method: 'DELETE',
+        headers: auth,
+      }),
+    revokeSessions: () => request(z.null(), '/session/revoke', { method: 'POST', headers: auth }),
+    runPersonalLab: (scenario: LabPersonalScenario) =>
+      request(LabPersonalResponse, '/lab/personal', sendJson('POST', scenario)),
     runLab: (scenario: LabScenario) =>
       request(LabRunResponse, '/lab/run', sendJson('POST', scenario)),
     fixtures: () => request(FixtureList, '/fixtures', { headers: auth }),

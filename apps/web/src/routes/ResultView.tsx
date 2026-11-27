@@ -4,12 +4,16 @@ import {
   EvidenceItem,
   Findings,
   IdentityComparison,
+  PersonalSignatureCard,
   RefLinks,
+  buildRedactedReport,
+  downloadFile,
+  reportToHtml,
   VerdictCard,
   type InspectorTab,
   type Target,
 } from '@mailshield/ui';
-import { FlaskConical } from 'lucide-react';
+import { FileDown, FlaskConical } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { DkimInspector } from '../features/inspector/DkimInspector.tsx';
 import { DomainInspector } from '../features/inspector/DomainInspector.tsx';
@@ -45,8 +49,15 @@ export function ResultView({ result }: { result: AnalysisResult }) {
   const simulated = result.inputSource === 'fixture' || result.inputSource === 'lab';
   // Locally verified DKIM is shown as signature cards; the provider's DKIM report stays here.
   const otherEvidence = result.authentication.filter(
-    (e) => e.kind !== 'dkim' || e.source === 'trusted_receiver',
+    (e) => (e.kind !== 'dkim' || e.source === 'trusted_receiver') && e.kind !== 'smime',
   );
+  const exportReport = (format: 'json' | 'html') => {
+    const report = buildRedactedReport(result);
+    const name = `mailshield-report-${result.analysisId.slice(0, 8)}`;
+    if (format === 'json') {
+      downloadFile(`${name}.json`, 'application/json', JSON.stringify(report, null, 2));
+    } else downloadFile(`${name}.html`, 'text/html', reportToHtml(report));
+  };
   const rows: [string, string][] = [
     ['From', sender.from.map(mailbox).join(', ') || '(none)'],
     ['Reply-To', sender.replyTo.map(mailbox).join(', ') || '(none)'],
@@ -136,6 +147,11 @@ export function ResultView({ result }: { result: AnalysisResult }) {
           <Section id="inspector-signatures" title={`Signatures (${result.signatures.length})`}>
             <DkimInspector signatures={result.signatures} />
           </Section>
+          {result.personalSignature && (
+            <Section id="inspector-personal" title="Personal signature">
+              <PersonalSignatureCard personal={result.personalSignature} />
+            </Section>
+          )}
           {otherEvidence.length > 0 && (
             <Section id="inspector-evidence" title="Other evidence">
               <ul className="space-y-3">
@@ -167,6 +183,20 @@ export function ResultView({ result }: { result: AnalysisResult }) {
         <div className={column('findings')}>
           <Section id="inspector-findings" title={`Findings (${result.findings.length})`}>
             <Findings findings={result.findings} onGo={go} />
+          </Section>
+          <Section id="inspector-export" title="Export">
+            <p className="text-sm">
+              A redacted report has the verdict, findings, domains and key fingerprints, and no
+              subject, body or raw headers.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="button-quiet" onClick={() => exportReport('json')}>
+                <FileDown aria-hidden className="size-4" /> Redacted report (JSON)
+              </button>
+              <button type="button" className="button-quiet" onClick={() => exportReport('html')}>
+                <FileDown aria-hidden className="size-4" /> Printable report (HTML)
+              </button>
+            </div>
           </Section>
           <details>
             <summary className="cursor-pointer text-sm font-medium">Raw result (JSON)</summary>
