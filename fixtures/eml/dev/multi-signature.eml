@@ -1,0 +1,29 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
+ bh=Cf6CpJF/e4604P+LzERhloRh/JtUYIE2ud4Y8JDG/pk=;
+ b=xKFxr+5c14nAKuG1xReGCgUVwA328exOwG4BbONhykDQGAclbUVrB6cf6BVHr7Nhyn0ip+Nsa
+ 9XeSynpV2fbh369ESWaP3g1wYfG6KRBJq864YOVgm3wxHQLcGKH3dOhV2gEjQ2nBmDKpd2EWpnB
+ i5x6OYzyLhjlgH17D0GQnz/yqvxhpJAlzksPnmoAugWosbxryMtaCHVstc6FzCVru6JtOJbY5FQ
+ yCHKrLSikQI1aCmjhHBg+u1jFZlYFIBRG/2vHY/83gkQ7aiU2c9BpHC8RzU7o0aAsQtgsSrCOvM
+ ujl+0zsdOK4VKKRuNORyhq6GhHsujWcb9xkGDdpyWBkA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme-mail.example;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
+ bh=Cf6CpJF/e4604P+LzERhloRh/JtUYIE2ud4Y8JDG/pk=;
+ b=K3YFAqJI/zHoO1n5TVOwGXO30JvIrKeuq6TudL4wasEaA4J0HicI2lQpIErm+6KGeRS6OarZN
+ VNOqQ8N99JjBvFcoB3f7DhMVhZsxIh9bb3gPb7Qoajtfhb8hI2PkKyYuk4cGcLnKMC/JsW4AGK5
+ ZHh5Ocj4TZBuwJ3ToUsk5KhtulEoaGcGnT1s1oXlpQDq4nCmvBVx89avO2ruv0gRDP41ceC1vwK
+ U9M/ytt+NliRaZz+JWkQ4bW10Q2DAAEfsNaCrM2I0duEU2hVIdBpNaZoqi8GcT4Vv6jndB4anq6
+ jFkSBIBfOEu0Ioy1VuiwY1r4BwuwJp4fwg4dVBEfgY/Q==
+From: Acme Support <support@acme.example>
+Subject: Your quarterly statement
+Message-ID: <statement-1@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your quarterly statement is ready in your Acme account.
+
+Acme Support

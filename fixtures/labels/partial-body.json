@@ -1,0 +1,20 @@
+{
+  "id": "partial-body",
+  "title": "Signature covers part of the body",
+  "description": "Signed with l=20; text was added after the signed length.",
+  "dns": "acme.json",
+  "eml": "dev/partial-body.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R9"
+    ]
+  }
+}

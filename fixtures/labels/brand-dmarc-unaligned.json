@@ -1,0 +1,20 @@
+{
+  "id": "brand-dmarc-unaligned",
+  "title": "Acme address, someone else’s signature",
+  "description": "From acme.example (p=reject), signed only by bulk-mailer.example (A-8).",
+  "dns": "acme.json",
+  "eml": "dev/brand-dmarc-unaligned.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R6"
+    ]
+  }
+}

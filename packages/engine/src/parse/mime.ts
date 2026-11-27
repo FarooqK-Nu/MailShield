@@ -8,6 +8,12 @@ export interface MimeSummary {
   attachments: number;
 }
 
+export interface MimeContent {
+  summary: MimeSummary;
+  text: string | null;
+  html: string | null;
+}
+
 const LIMIT_CODES = new Set([
   'EMAXNESTINGDEPTH',
   'EMAXPARTCOUNT',
@@ -16,7 +22,7 @@ const LIMIT_CODES = new Set([
 ]);
 
 /** Structured view for display and link extraction only. Signatures never use it. */
-export async function parseMime(raw: Buffer): Promise<MimeSummary> {
+export async function parseMime(raw: Buffer): Promise<MimeContent> {
   try {
     const email = await PostalMime.parse(raw, {
       maxNestingDepth: LIMITS.mimeDepth,
@@ -24,9 +30,13 @@ export async function parseMime(raw: Buffer): Promise<MimeSummary> {
       maxHeadersSize: LIMITS.headerBytes,
     });
     return {
-      hasText: Boolean(email.text),
-      hasHtml: Boolean(email.html),
-      attachments: email.attachments.length,
+      summary: {
+        hasText: Boolean(email.text),
+        hasHtml: Boolean(email.html),
+        attachments: email.attachments.length,
+      },
+      text: email.text ?? null,
+      html: email.html ?? null,
     };
   } catch (error) {
     if (LIMIT_CODES.has((error as { code?: string }).code ?? '')) {

@@ -1,0 +1,18 @@
+{
+  "id": "outsourced-sender",
+  "title": "Sent by Acme’s mail provider",
+  "description": "From and signed by acme-mail.example, an approved service provider for Acme.",
+  "dns": "acme.json",
+  "eml": "dev/outsourced-sender.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

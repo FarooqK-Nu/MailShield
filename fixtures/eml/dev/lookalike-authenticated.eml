@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acrne.example;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
+ bh=bVYsFZp8SR+aFWTGX5v4bLsoHBUqyHQ+8dCNyQSNEg4=;
+ b=PNg4ABg/hoQmM6Q0lGIiymn/mIsneeBco3ns1IJHdz37zPLR8GCW3MTQrBwK/E4Jle8ncmJKq
+ zP5Nkeo+K+miW4kaf8CXdFMWn1tfVztSxzDVpIYiFW8mnOkF7G3w++gD/VJftfbyhaVMhCjGQJy
+ SzAvPCPYMdEYJ+W0qYd9A/qjuFzcBnx6WL/R/PG7qhoLn8FhtqJCpM8856bfPx2GrxUObSUGBEr
+ 4j4ftzoDxc/nM53hr+6aizvIvBY1S1blATbsQpmmgxUqpn2jxnBJ8TQhmQczFcMDO6XSqnYQmOc
+ yRisAWulecOtq3rODUdxFsGZ/lanuBqsosXdtEOijFnw==
+From: Acme Support <support@acrne.example>
+Subject: Action needed: confirm your account
+Message-ID: <confirm-1@acrne.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello,
+
+Please confirm your Acme account details today.
+
+Acme Support

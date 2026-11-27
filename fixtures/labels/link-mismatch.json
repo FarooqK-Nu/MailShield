@@ -1,0 +1,20 @@
+{
+  "id": "link-mismatch",
+  "title": "Link text and target differ",
+  "description": "A valid Acme message whose link shows acme.example but opens acme-login.example.",
+  "dns": "acme.json",
+  "eml": "dev/link-mismatch.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R7"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "lookalike-authenticated",
+  "title": "Authenticated look-alike domain",
+  "description": "“Acme Support” from acrne.example, with a valid DKIM signature for acrne.example.",
+  "dns": "acme.json",
+  "eml": "dev/lookalike-authenticated.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R1",
+      "R3"
+    ]
+  }
+}

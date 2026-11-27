@@ -1,8 +1,17 @@
-import type { AnalysisResult, Evidence, Mailbox, StageName } from '@mailshield/contracts';
-import { EvidenceCard, StatusBadge, VerdictCard } from '@mailshield/ui';
+import type { AnalysisResult, Evidence, Mailbox } from '@mailshield/contracts';
+import { StatusBadge, VerdictCard } from '@mailshield/ui';
 import { FlaskConical } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { DkimInspector } from '../features/inspector/DkimInspector.tsx';
 import { DomainInspector } from '../features/inspector/DomainInspector.tsx';
+import { Findings } from '../features/inspector/Findings.tsx';
+import { IdentityComparison } from '../features/inspector/IdentityComparison.tsx';
+import { Pipeline } from '../features/inspector/Pipeline.tsx';
+import { Preview } from '../features/inspector/Preview.tsx';
+import { RawHeaders } from '../features/inspector/RawHeaders.tsx';
+import { RefLinks } from '../features/inspector/RefLinks.tsx';
 import { RegistryMatches } from '../features/inspector/RegistryMatches.tsx';
+import { anchorId, type InspectorTab, type Target } from '../features/inspector/targets.ts';
 
 const SOURCES: Record<Evidence['source'], string> = {
   local_crypto: 'Checked here',
@@ -18,24 +27,29 @@ const KINDS: Partial<Record<Evidence['kind'], string>> = {
   receiver: 'Authentication-Results header',
 };
 
-const STAGE_LABELS: Record<StageName, string> = {
-  intake: 'Input limits',
-  parse: 'Header and MIME parsing',
-  dns: 'DNS key lookup',
-  dkim: 'DKIM signatures',
-  receiver: 'Receiver results',
-  alignment: 'DMARC alignment',
-  smime: 'Personal signature (S/MIME)',
-  identity: 'Claimed identity',
-  registry: 'Trusted registry',
-  rules: 'Impersonation rules',
-  verdict: 'Verdict',
-};
+const TABS: [InspectorTab, string][] = [
+  ['identity', 'Identity'],
+  ['evidence', 'Evidence'],
+  ['findings', 'Findings'],
+];
 
 const mailbox = (m: Mailbox) =>
   m.displayName ? `${m.displayName} <${m.address}>` : m.address || '(no address)';
 
+function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-4 space-y-3">
+      <h2 id={`${id}-title`} className="font-semibold">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/** Three columns on wide screens, tabs below `lg` (docs/architecture.md §7). */
 export function ResultView({ result }: { result: AnalysisResult }) {
+  const [tab, setTab] = useState<InspectorTab>('findings');
   const { sender } = result;
   const simulated = result.inputSource === 'fixture' || result.inputSource === 'lab';
   const otherEvidence = result.authentication.filter((e) => e.kind !== 'dkim');
@@ -45,103 +59,142 @@ export function ResultView({ result }: { result: AnalysisResult }) {
     ['Subject', sender.subject ?? '(none)'],
     ['Date', sender.date ?? '(none)'],
   ];
+
+  const go = (target: Target) => {
+    setTab(target.tab);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(target.anchor);
+      if (!el) return;
+      el.closest('details')?.setAttribute('open', '');
+      el.scrollIntoView({ block: 'center' });
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 1500);
+    });
+  };
+  const column = (name: InspectorTab) =>
+    `min-w-0 space-y-6 ${tab === name ? '' : 'hidden'} lg:block`;
+
   return (
     <div className="space-y-6">
       {simulated && (
         <p className="flex items-center gap-2 rounded-lg border border-dashed border-violet-600 p-3 text-sm font-medium">
           <FlaskConical aria-hidden className="size-5 shrink-0" />
-          Simulated demo: synthetic message, fixture DNS and a fixed clock. Not a real email.
+          Simulated demo: synthetic message, fixture DNS, the fictional seed registry and a fixed
+          clock. Not a real email.
         </p>
       )}
-      <VerdictCard result={result} />
+      <VerdictCard result={result}>
+        <div className="mt-2 space-y-1">
+          <p className="text-xs font-medium">Based on:</p>
+          <RefLinks
+            refs={[...result.verdictBasis.findingIds, ...result.verdictBasis.evidenceIds]}
+            onGo={go}
+          />
+        </div>
+      </VerdictCard>
 
-      <section aria-labelledby="sender-title">
-        <h2 id="sender-title" className="mb-2 font-semibold">
-          What the message says
-        </h2>
-        <dl className="space-y-1 text-sm">
-          {rows.map(([label, value]) => (
-            <div key={label} className="grid gap-x-4 sm:grid-cols-[11rem_1fr]">
-              <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
-              <dd className="min-w-0 wrap-break-word">{value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <section aria-labelledby="signatures-title" className="space-y-3">
-        <h2 id="signatures-title" className="font-semibold">
-          Signatures ({result.signatures.length})
-        </h2>
-        {result.signatures.length === 0 && (
-          <p className="flex flex-wrap items-center gap-2 text-sm">
-            <StatusBadge status="missing" /> This message has no DKIM signature.
-          </p>
-        )}
-        {result.signatures.map((signature) => (
-          <EvidenceCard key={signature.evidenceId} signature={signature} />
+      <div
+        role="tablist"
+        aria-label="Inspector"
+        className="flex gap-1 border-b border-slate-300 lg:hidden dark:border-slate-700"
+      >
+        {TABS.map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={tab === value}
+            data-state={tab === value ? 'active' : 'inactive'}
+            onClick={() => setTab(value)}
+            className="tab"
+          >
+            {label}
+            {value === 'findings' && ` (${result.findings.length})`}
+          </button>
         ))}
-      </section>
+      </div>
 
-      <section aria-labelledby="claimed-title" className="space-y-3">
-        <h2 id="claimed-title" className="font-semibold">
-          Who it claims to be
-        </h2>
-        <RegistryMatches candidates={result.candidates} />
-      </section>
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className={column('identity')}>
+          <IdentityComparison result={result} />
+          <Section id="inspector-sender" title="What the message says">
+            <dl className="space-y-1 text-sm">
+              {rows.map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-xs text-slate-500 dark:text-slate-400">{label}</dt>
+                  <dd className="min-w-0 wrap-break-word">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Section>
+          <Section id="inspector-claimed" title="Who it claims to be">
+            <RegistryMatches candidates={result.candidates} />
+          </Section>
+          <Section id="inspector-domains" title="Domains in the message">
+            <DomainInspector domains={result.domains} />
+          </Section>
+          <Preview preview={result.preview} />
+          <RawHeaders lines={result.rawHeaders} />
+        </div>
 
-      <section aria-labelledby="domains-title" className="space-y-3">
-        <h2 id="domains-title" className="font-semibold">
-          Domains in the message
-        </h2>
-        <DomainInspector domains={result.domains} />
-      </section>
+        <div className={column('evidence')}>
+          <Pipeline stages={result.stages} />
+          <Section id="inspector-signatures" title={`Signatures (${result.signatures.length})`}>
+            <DkimInspector signatures={result.signatures} />
+          </Section>
+          {otherEvidence.length > 0 && (
+            <Section id="inspector-evidence" title="Other evidence">
+              <ul className="space-y-3">
+                {otherEvidence.map((e) => (
+                  <li
+                    key={e.id}
+                    id={anchorId(e.id)}
+                    className="rounded-lg border border-slate-300 p-4 text-sm dark:border-slate-700"
+                  >
+                    <p className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold">{KINDS[e.kind] ?? e.kind}</span>
+                      <StatusBadge status={e.status} />
+                    </p>
+                    <p className="mt-1">{e.reason}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Source: {SOURCES[e.source]}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+          <Section id="inspector-links" title={`Links (${result.links.length})`}>
+            {result.links.length === 0 ? (
+              <p className="text-sm">No links in an HTML body.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {result.links.map((link) => (
+                  <li key={link.id} id={anchorId(link.id)} className="break-all">
+                    <span className="text-slate-500 dark:text-slate-400">Shows</span> “
+                    {link.visibleText || '(no text)'}”{' '}
+                    <span className="text-slate-500 dark:text-slate-400">opens</span>{' '}
+                    <code className="text-xs">{link.href}</code>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-xs text-slate-500 dark:text-slate-400">Links are never opened.</p>
+          </Section>
+        </div>
 
-      {otherEvidence.length > 0 && (
-        <section aria-labelledby="evidence-title" className="space-y-3">
-          <h2 id="evidence-title" className="font-semibold">
-            Other evidence
-          </h2>
-          <ul className="space-y-3">
-            {otherEvidence.map((e) => (
-              <li
-                key={e.id}
-                className="rounded-lg border border-slate-300 p-4 text-sm dark:border-slate-700"
-              >
-                <p className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold">{KINDS[e.kind] ?? e.kind}</span>
-                  <StatusBadge status={e.status} />
-                </p>
-                <p className="mt-1">{e.reason}</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Source: {SOURCES[e.source]}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section aria-labelledby="stages-title">
-        <h2 id="stages-title" className="mb-2 font-semibold">
-          Checks run
-        </h2>
-        <ul className="divide-y divide-slate-200 text-sm dark:divide-slate-800">
-          {result.stages.map((stage) => (
-            <li key={stage.stage} className="flex items-center justify-between gap-3 py-1.5">
-              <span>{STAGE_LABELS[stage.stage]}</span>
-              <StatusBadge status={stage.status} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <details>
-        <summary className="cursor-pointer text-sm font-medium">Raw result (JSON)</summary>
-        <pre className="mt-2 max-h-96 overflow-auto rounded-lg border border-slate-300 p-3 text-xs dark:border-slate-700">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      </details>
+        <div className={column('findings')}>
+          <Section id="inspector-findings" title={`Findings (${result.findings.length})`}>
+            <Findings findings={result.findings} onGo={go} />
+          </Section>
+          <details>
+            <summary className="cursor-pointer text-sm font-medium">Raw result (JSON)</summary>
+            <pre className="mt-2 max-h-96 overflow-auto rounded-lg border border-slate-300 p-3 text-xs dark:border-slate-700">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </details>
+        </div>
+      </div>
     </div>
   );
 }

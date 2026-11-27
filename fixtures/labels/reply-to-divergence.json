@@ -1,0 +1,20 @@
+{
+  "id": "reply-to-divergence",
+  "title": "Replies go elsewhere",
+  "description": "A valid Acme message whose Reply-To points to payhelp.example.",
+  "dns": "acme.json",
+  "eml": "dev/reply-to-divergence.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R5"
+    ]
+  }
+}

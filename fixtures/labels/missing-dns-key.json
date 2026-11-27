@@ -12,6 +12,9 @@
         "status": "missing",
         "failureStage": "dns"
       }
+    ],
+    "rules": [
+      "R6"
     ]
   }
 }

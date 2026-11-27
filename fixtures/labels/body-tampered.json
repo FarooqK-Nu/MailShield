@@ -6,12 +6,16 @@
   "eml": "dev/body-tampered.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {
-    "verdict": "identity_unverified",
+    "verdict": "authentication_concern",
     "signatures": [
       {
         "status": "fail",
         "failureStage": "body_hash"
       }
+    ],
+    "rules": [
+      "R6",
+      "R9"
     ]
   }
 }

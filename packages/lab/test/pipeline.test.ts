@@ -4,6 +4,7 @@ import { analyze, AnalysisError } from '@mailshield/engine';
 import { describe, expect, it } from 'vitest';
 import {
   dkimRecord,
+  fixtureRegistry,
   FixtureResolver,
   listFixtures,
   loadFixture,
@@ -23,22 +24,37 @@ const fixture = (id: string) => loadFixture(id)!;
 const legit = () => fixture('legit-signed');
 
 describe('labelled fixtures', () => {
-  it('include the Phase 1 set', () => {
+  it('include the Phase 1 and Phase 3 sets', () => {
     expect(listFixtures().map((f) => f.id)).toEqual([
       'body-tampered',
+      'brand-dmarc-unaligned',
       'dns-timeout',
       'legit-signed',
+      'link-mismatch',
+      'lookalike-authenticated',
       'missing-dns-key',
+      'multi-signature',
+      'outsourced-sender',
+      'partial-body',
+      'reply-to-divergence',
       'unsigned',
     ]);
   });
 
   it.each(listFixtures().map((f) => f.id))('%s matches its label', async (id) => {
     const { raw, zone, label } = fixture(id);
-    const result = await run(raw, zone);
+    const result = await analyze(
+      { raw, source: 'fixture' },
+      {
+        resolver: new FixtureResolver(zone),
+        registry: fixtureRegistry,
+        clock: () => new Date(label.now),
+      },
+    );
 
     expect(() => AnalysisResult.parse(result)).not.toThrow();
     expect(result.verdict).toBe(label.expected.verdict);
+    expect([...new Set(result.findings.map((f) => f.ruleId))].sort()).toEqual(label.expected.rules);
     expect(result.signatures.map(({ status, failureStage }) => ({ status, failureStage }))).toEqual(
       label.expected.signatures,
     );
@@ -58,7 +74,7 @@ describe('DKIM evidence', () => {
       domain: 'acme.example',
       selector: 's1',
       algorithm: 'rsa-sha256',
-      signedHeaders: ['date', 'subject', 'to', 'from'],
+      signedHeaders: ['date', 'to', 'subject', 'from'],
       unsignedHeaders: [],
       bodyCoverage: null,
       bodyHash: { matches: true },
@@ -167,7 +183,7 @@ describe('pipeline behaviour', () => {
       'verdict',
     ]);
     const status = (name: string) => stages.find((s) => s.stage === name)!.status;
-    for (const name of ['smime', 'rules']) expect(status(name)).toBe('not_evaluated');
+    expect(status('smime')).toBe('not_evaluated');
     expect(status('registry')).toBe('skipped');
     expect(status('receiver')).toBe('skipped');
   });

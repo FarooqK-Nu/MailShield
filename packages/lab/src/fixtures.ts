@@ -15,6 +15,8 @@ export const FixtureLabel = z.object({
   expected: z.object({
     verdict: z.string(),
     signatures: z.array(z.object({ status: z.string(), failureStage: z.string().nullable() })),
+    /** Rule ids that must produce findings; every other rule must stay silent. */
+    rules: z.array(z.string()),
   }),
 });
 export type FixtureLabel = z.infer<typeof FixtureLabel>;

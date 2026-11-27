@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme-mail.example;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
+ bh=2nnH0b8Qksdw2B++MjgzaO5L64NiyseUKOZChxDVJfU=;
+ b=F9u2aWg3BhhQ0PW5Iwvm07gkxAxqptai7cXq3VksgF3CxdIUzL09HeNOcTbuC1+E7ZDN1eW8i
+ P6ZiosSZ9qoyNeTzqXBRC5yeE2P5ingtWbAAKzByaei1egoyuHA+JHxTXYs2sFwTHP/yt1qkhLG
+ Dl2R6uJJbJssI7hHVRDHv52GIujB6L/m6+peVY2PAeEXmWf+dE37dCA+Qe4J4eHL0aM6gxdMHgk
+ QBGl2vWn31BY2MCIsMR0oD3KRoDbHgPuzpNr8jafTeHfoHdtLtsCI+fUUoo5oxBkORXDJhfxy7Z
+ uX3J/df3JfX27OoNYShrTRQmAw4ZZApDlU4ACAmzH/EQ==
+From: Acme Newsletter <news@acme-mail.example>
+Subject: Acme product news
+Message-ID: <news-4@acme-mail.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+This month at Acme: new features.

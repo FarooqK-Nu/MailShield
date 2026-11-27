@@ -1,8 +1,8 @@
 From: Acme Support <support@acme.example>
-To: alice@example.org
 Subject: Your quarterly statement
-Date: Mon, 01 Jun 2026 10:00:00 +0000
 Message-ID: <statement-1@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 

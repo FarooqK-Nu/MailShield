@@ -174,6 +174,8 @@ export const IdentityCandidate = z.object({
 export type IdentityCandidate = z.infer<typeof IdentityCandidate>;
 
 export const Finding = z.object({
+  /** Stable within one result, e.g. `R1-1`. */
+  id: z.string(),
   ruleId: z.string(),
   ruleVersion: z.string(),
   severity: z.enum(['high', 'caution', 'info', 'low']),
@@ -183,6 +185,8 @@ export const Finding = z.object({
   evidenceRefs: z.array(z.string()),
   explanation: z.string(),
   recommendation: z.string(),
+  /** Findings about the same thing (e.g. one domain) share a group and show as one card. */
+  group: z.string().nullable(),
 });
 export type Finding = z.infer<typeof Finding>;
 
@@ -227,6 +231,36 @@ export const StageEvent = z.object({
 });
 export type StageEvent = z.infer<typeof StageEvent>;
 
+/** An `<a>` element from the HTML body. Links are never fetched. */
+export const LinkEvidence = z.object({
+  id: z.string(),
+  visibleText: z.string(),
+  href: z.string(),
+  hrefHost: z.string().nullable(),
+  /** Host named by the visible text, when the text looks like a URL or domain. */
+  textHost: z.string().nullable(),
+});
+export type LinkEvidence = z.infer<typeof LinkEvidence>;
+
+export const HeaderLine = z.object({ name: z.string(), value: z.string(), offset: z.number() });
+export type HeaderLine = z.infer<typeof HeaderLine>;
+
+/** Body text for the sanitized preview. Null for header-only input. */
+export const MessagePreview = z.object({
+  text: z.string().nullable(),
+  html: z.string().nullable(),
+});
+export type MessagePreview = z.infer<typeof MessagePreview>;
+
+/** Why the verdict was chosen (invariant 9): the table row and what triggered it. */
+export const VerdictBasis = z.object({
+  row: z.number().int().min(1).max(6),
+  reason: z.string(),
+  findingIds: z.array(z.string()),
+  evidenceIds: z.array(z.string()),
+});
+export type VerdictBasis = z.infer<typeof VerdictBasis>;
+
 export const AnalysisResult = z.object({
   analysisId: z.uuid(),
   schemaVersion: z.literal('1'),
@@ -240,8 +274,12 @@ export const AnalysisResult = z.object({
   authentication: z.array(Evidence),
   signatures: z.array(SignatureEvidence),
   findings: z.array(Finding),
+  links: z.array(LinkEvidence),
+  rawHeaders: z.array(HeaderLine),
+  preview: MessagePreview,
   stages: z.array(StageEvent),
   verdict: Verdict,
+  verdictBasis: VerdictBasis,
   identityStatus: IdentityStatus,
   riskLevel: RiskLevel,
   limitations: z.array(z.string()),

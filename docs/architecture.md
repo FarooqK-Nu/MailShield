@@ -251,6 +251,8 @@ interface Rule { id: `R${number}`; version: string; run(ctx: RuleContext): Findi
 | 5 | Registry match + aligned evidence + `caution` findings | Identity unverified (with cautions) | `corroborated_*` | `caution` |
 | 6 | Everything else (no registry match, missing/unknown evidence, header-only) | Identity unverified | `unverified` | `unknown` / `caution` |
 
+The result's `verdictBasis` names the table row and the finding and evidence ids that decided it (invariant 9). Finding ids look like `R6:invalid_dkim:1`; evidence references are `Evidence` ids (`dkim-1`, `dmarc-local`), link ids (`link-1`), `domain:<role>` (domain inspector) or `registry:<identity id>`. Rule settings are one versioned `RuleConfig` object (`rules/config.ts`); R8 is disabled until key history exists. Corroboration (rows 4–5) needs a `user_trusted` or `independently_verified` entry (A-11).
+
 Every result carries `limitations[]`, e.g. “Header-only input: body signature not checked”, “DMARC evaluated from DKIM only”, “DNS key unavailable now; historical result may differ”.
 
 ---
@@ -271,6 +273,7 @@ const Evidence = z.object({
 });
 
 const Finding = z.object({
+  id: z.string(), group: z.string().nullable(),   // same group = one card (correlation)
   ruleId: z.string(), ruleVersion: z.string(),
   severity: z.enum(['high','caution','info','low']),
   title: z.string(), observed: z.string(), expected: z.string().optional(),
@@ -285,6 +288,9 @@ const AnalysisResult = z.object({
   sender: SenderView, claimedIdentity: ClaimedIdentity.nullable(),
   authentication: z.array(Evidence), signatures: z.array(SignatureEvidence),
   findings: z.array(Finding), stages: z.array(StageEvent),
+  links: z.array(LinkEvidence), rawHeaders: z.array(HeaderLine),
+  preview: MessagePreview,                  // body text/html for the sanitized preview, never logged or stored
+  verdictBasis: VerdictBasis,               // { row, reason, findingIds, evidenceIds }
   verdict: z.enum(['possible_impersonation','authentication_concern','identity_unverified','no_concerning_mismatch']),
   identityStatus: IdentityStatus, riskLevel: RiskLevel,
   limitations: z.array(z.string()), analyzedAt: z.string().datetime(),

@@ -1,5 +1,5 @@
 import { analyze } from '@mailshield/engine';
-import { FixtureResolver, listFixtures, loadFixture } from '@mailshield/lab';
+import { fixtureRegistry, FixtureResolver, listFixtures, loadFixture } from '@mailshield/lab';
 import { Router, type RequestHandler } from 'express';
 import { sendProblem } from '../middleware/errors.ts';
 
@@ -23,7 +23,12 @@ export function labRoutes(guards: RequestHandler[]): Router {
     res.json(
       await analyze(
         { raw: fixture.raw, source: 'fixture' },
-        { resolver: new FixtureResolver(fixture.zone), clock: () => now },
+        // The fictional seed registry, never the local one (A-10).
+        {
+          resolver: new FixtureResolver(fixture.zone),
+          registry: fixtureRegistry,
+          clock: () => now,
+        },
       ),
     );
   });

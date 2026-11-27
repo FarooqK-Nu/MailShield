@@ -1,16 +1,16 @@
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
- h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ h=Date: To: Subject: From; q=dns/txt; s=s1; t=1780308000;
  bh=Cf6CpJF/e4604P+LzERhloRh/JtUYIE2ud4Y8JDG/pk=;
- b=DrEh3+GUlD4eFSxn/s0tINxQuoi1ACSmPyx4Agx0jEUV7g2l8iBeIlyuZ5ASN79Hfo7CL6+XE
- f9kNrsaTOnpDFU/DG6h30ZSJ2vlWC/JCS58CJeIUyJF9OXbGuB6Jkj1lSm9dLzFTUWwOTBWC7LH
- I5SdaYDXXTdP2+eqtPgPyyCpHGLvM4eBYwE3zbkBctyzBO7SiMgfRwtVVqrIsucG6B1G5ZDDV23
- 5gnd2DYB3pBK80xX6XIR5XE5dKPz2Fl5vCUpMtNQlTlTo6DyrAtW0xcewwB7XDlgafiNxZ/tbuO
- I0cmvgWVKEFVlRebPSS/45Pc8PuiEZ6YZrMpAGU5I+uw==
+ b=xKFxr+5c14nAKuG1xReGCgUVwA328exOwG4BbONhykDQGAclbUVrB6cf6BVHr7Nhyn0ip+Nsa
+ 9XeSynpV2fbh369ESWaP3g1wYfG6KRBJq864YOVgm3wxHQLcGKH3dOhV2gEjQ2nBmDKpd2EWpnB
+ i5x6OYzyLhjlgH17D0GQnz/yqvxhpJAlzksPnmoAugWosbxryMtaCHVstc6FzCVru6JtOJbY5FQ
+ yCHKrLSikQI1aCmjhHBg+u1jFZlYFIBRG/2vHY/83gkQ7aiU2c9BpHC8RzU7o0aAsQtgsSrCOvM
+ ujl+0zsdOK4VKKRuNORyhq6GhHsujWcb9xkGDdpyWBkA==
 From: Acme Support <support@acme.example>
-To: alice@example.org
 Subject: Your quarterly statement
-Date: Mon, 01 Jun 2026 10:00:00 +0000
 Message-ID: <statement-1@acme.example>
+To: alice@example.org
+Date: Mon, 01 Jun 2026 10:00:00 +0000
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 

@@ -3,6 +3,7 @@ import { LoaderCircle, Upload } from 'lucide-react';
 import { Tabs } from 'radix-ui';
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { ApiError, type Client } from '../api/client.ts';
+import { recordAnalysis } from '../history.ts';
 import { ResultView } from './ResultView.tsx';
 
 interface Job {
@@ -42,7 +43,9 @@ export function Analyze({ client, onUnauthorized }: Props) {
     setState({ step: 'running', job });
     try {
       const result = await job.run();
-      if (ticket === latest.current) setState({ step: 'done', job, result });
+      if (ticket !== latest.current) return;
+      recordAnalysis(job.label, result);
+      setState({ step: 'done', job, result });
     } catch (e) {
       if (ticket !== latest.current) return;
       const error = e as ApiError;

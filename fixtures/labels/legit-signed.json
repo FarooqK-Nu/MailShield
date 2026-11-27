@@ -1,17 +1,18 @@
 {
   "id": "legit-signed",
   "title": "Signed message from Acme",
-  "description": "A fictional Acme message with a valid DKIM signature.",
+  "description": "A fictional Acme message with a valid DKIM signature from acme.example.",
   "dns": "acme.json",
   "eml": "dev/legit-signed.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {
-    "verdict": "identity_unverified",
+    "verdict": "no_concerning_mismatch",
     "signatures": [
       {
         "status": "pass",
         "failureStage": null
       }
-    ]
+    ],
+    "rules": []
   }
 }
