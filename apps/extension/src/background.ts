@@ -154,27 +154,26 @@ async function handle(request: PanelRequest): Promise<Reply<unknown>> {
   }
 }
 
+const EXTENSION_PAGES = chrome.runtime.getURL('');
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (sender.id !== chrome.runtime.id) return;
 
-  // The Gmail content script reports what is open. It is a hint only.
-  if (sender.tab) {
-    const parsed = ContentMessage.safeParse(message);
-    const tabId = sender.tab.id;
-    if (
-      parsed.success &&
-      tabId !== undefined &&
-      sender.url?.startsWith('https://mail.google.com/')
-    ) {
-      void chrome.storage.session
-        .set({ [hintKey(tabId)]: parsed.data.hint })
-        .then(() => broadcast({ type: 'hint-changed', tabId }));
-    }
-    return;
+  // Requests come only from this extension's own pages (the side panel). A page opened in a tab
+  // also has `sender.tab`, so the sender is told apart by URL, not by the tab.
+  if (sender.url?.startsWith(EXTENSION_PAGES)) {
+    const request = PanelRequest.safeParse(message);
+    if (!request.success) return;
+    void handle(request.data).then(sendResponse);
+    return true;
   }
 
-  const request = PanelRequest.safeParse(message);
-  if (!request.success) return;
-  void handle(request.data).then(sendResponse);
-  return true;
+  // The Gmail content script reports what is open. It is a hint only.
+  const tabId = sender.tab?.id;
+  const parsed = ContentMessage.safeParse(message);
+  if (parsed.success && tabId !== undefined && sender.url?.startsWith('https://mail.google.com/')) {
+    void chrome.storage.session
+      .set({ [hintKey(tabId)]: parsed.data.hint })
+      .then(() => broadcast({ type: 'hint-changed', tabId }));
+  }
 });
