@@ -10,7 +10,7 @@ Undergraduate Information Security semester project.
 - **Personal signatures:** S/MIME verification judged separately for signature, chain, email binding, enrolled key and time.
 - **Security lab:** sign, mutate and rotate fictional messages and watch each verification stage.
 - **Key history and settings:** opt-in, local, deletable; redacted report export.
-- **Evaluation:** 44 labelled synthetic fixtures with a development and a held-out set (see [test report](docs/test-report.md)).
+- **Evaluation:** 45 labelled synthetic fixtures with a development and a held-out set (see [test report](docs/test-report.md)).
 - **Gmail side panel:** analyze the open message with read-only access.
 
 ### Not implemented (listed honestly)
