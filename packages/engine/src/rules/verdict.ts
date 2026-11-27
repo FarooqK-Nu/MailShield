@@ -91,6 +91,43 @@ export function decideVerdict(ctx: RuleContext, findings: Finding[]): VerdictOut
     break;
   }
 
+  // A personal signature is stronger than a domain one: the key was enrolled for this person.
+  const personal = ctx.personal;
+  const enrolled = personal?.enrolledFor;
+  const person =
+    personal?.signatureValid &&
+    personal.emailBinding &&
+    personal.timeValid &&
+    enrolled &&
+    ctx.candidates.find(
+      (c) => c.identityId === enrolled.identityId && CORROBORATING.has(c.trustState),
+    );
+  if (person && personal) {
+    limitations.push(
+      'The signature confirms that the key you enrolled for this person signed the covered part. Headers outside the signed part, such as the Subject, are not covered.',
+    );
+    if (cautions.length === 0) {
+      return out(
+        4,
+        'no_concerning_mismatch',
+        'corroborated_personal',
+        'low',
+        `A valid signature from the key enrolled for ${person.displayName} covers the message.`,
+        [],
+        [personal.evidenceId],
+      );
+    }
+    return out(
+      5,
+      'identity_unverified',
+      'corroborated_personal',
+      'caution',
+      `The signing key is enrolled for ${person.displayName}, but some findings need attention.`,
+      cautions,
+      [personal.evidenceId],
+    );
+  }
+
   if (corroboratedBy) {
     limitations.push(
       'This confirms the domain identity, not personal authorship: anyone with access to the domain could have sent it.',

@@ -4,10 +4,13 @@ import type {
   Identity,
   IdentityCandidate,
   LinkEvidence,
+  KeyObservation,
   MatchReason,
+  PersonalSignature,
   SenderView,
   SignatureEvidence,
 } from '@mailshield/contracts';
+import { classifyKey } from '../history/classify.ts';
 import { analyzeDomain, matchesApproved } from '../identity/domain.ts';
 import { compareLabels } from '../identity/similarity.ts';
 import type { RuleConfig, RuleId } from './config.ts';
@@ -22,6 +25,10 @@ export interface RuleContext {
   links: LinkEvidence[];
   headerOnly: boolean;
   config: RuleConfig;
+  /** The S/MIME check, or null when the message is not S/MIME signed. */
+  personal: PersonalSignature | null;
+  /** Undefined when key history is off; R8 is then not evaluated. */
+  history?: readonly KeyObservation[];
 }
 
 type Draft = Omit<Finding, 'id' | 'ruleId' | 'ruleVersion'> & { kind: string };
@@ -94,7 +101,7 @@ function r2(ctx: RuleContext): Draft[] {
   if (!from) return [];
   return active(ctx)
     .filter((c) => c.kind === 'person' && claimedByName(c))
-    .map((c) => {
+    .map((c): Draft | null => {
       const identity = identityOf(ctx, c.identityId)!;
       const known = identity.addresses.map((a) => a.address.toLowerCase());
       const matches = known.includes(from.address.toLowerCase());
@@ -111,18 +118,51 @@ function r2(ctx: RuleContext): Draft[] {
           group: `person:${identity.id}`,
         };
       }
+      const personal = ctx.personal;
+      if (personal?.signatureValid) {
+        // The key enrolled for this very person corroborates them: nothing to report.
+        if (personal.enrolledFor?.identityId === identity.id) return null;
+        const signer = personal.signer?.email ?? 'an unknown signer';
+        if (identity.keys.some((k) => k.status === 'active')) {
+          return {
+            kind: 'key_not_enrolled',
+            severity: 'high' as const,
+            title: `Signed, but not with a key enrolled for ${identity.displayName}`,
+            observed: `Valid signature by ${signer}`,
+            expected: `A key you enrolled for ${identity.displayName}`,
+            evidenceRefs: [personal.evidenceId, `registry:${identity.id}`],
+            explanation: `The signature is mathematically valid, so someone holds that key. But ${identity.displayName} has enrolled keys in your registry and this is not one of them. A valid signature proves a key, not the person.`,
+            recommendation: `Check with ${identity.displayName} through a contact you already know.`,
+            group: `person:${identity.id}`,
+          };
+        }
+        return {
+          kind: 'unverified',
+          severity: 'info' as const,
+          title: `Signed by a key not yet enrolled for ${identity.displayName}`,
+          observed: `Valid signature by ${signer}`,
+          evidenceRefs: [personal.evidenceId, `registry:${identity.id}`],
+          explanation:
+            'The signature is valid, but you have not enrolled a key for this person, so it does not confirm who they are.',
+          recommendation:
+            'If you can compare the key fingerprint through another channel, enrol it in the registry.',
+          group: `person:${identity.id}`,
+        };
+      }
       return {
         kind: 'unverified',
         severity: 'info' as const,
         title: `Personal identity of ${identity.displayName} not verified`,
         observed: from.address,
-        evidenceRefs: [`registry:${identity.id}`],
-        explanation:
-          'No personal signature was checked, so the message is not confirmed to be from this person. This is not a sign of fraud on its own.',
+        evidenceRefs: [`registry:${identity.id}`, ...(personal ? [personal.evidenceId] : [])],
+        explanation: personal
+          ? 'The personal signature did not verify, so the message is not confirmed to be from this person.'
+          : 'No personal signature was checked, so the message is not confirmed to be from this person. This is not a sign of fraud on its own.',
         recommendation: 'For sensitive requests, confirm through another channel.',
         group: `person:${identity.id}`,
       };
-    });
+    })
+    .filter((draft): draft is Draft => draft !== null);
 }
 
 /** R3: the From domain looks like a registry domain but is a different one. */
@@ -385,6 +425,55 @@ function r9(ctx: RuleContext): Draft[] {
   return out;
 }
 
+const R8_TEXT = {
+  first_contact: [
+    'info',
+    'First time this domain’s key is seen',
+    'No earlier key from this domain is in your history.',
+  ],
+  rotation: [
+    'info',
+    'New signing key selector',
+    'The domain now signs with a selector you have not seen. Rotating selectors is normal, but it is a change.',
+  ],
+  unexpected_change: [
+    'info',
+    'The key behind a known selector changed',
+    'The same selector earlier had a different key. Providers do rotate keys, but an attacker who controls DNS can also swap one.',
+  ],
+  revoked: [
+    'caution',
+    'A key you marked as revoked signed this message',
+    'You earlier marked this key as revoked, yet it signed a message that verified now.',
+  ],
+} as const;
+
+/** R8: a signing key that has not been seen before, or that changed. Needs the opt-in history. */
+function r8(ctx: RuleContext): Draft[] {
+  const history = ctx.history ?? [];
+  return ctx.signatures.flatMap((s): Draft[] => {
+    if (s.status !== 'pass' || !s.key || !s.domain || !s.selector) return [];
+    const kind = classifyKey(history, s.domain, s.selector, s.key.fingerprint);
+    if (kind === 'known') return [];
+    const [severity, title, explanation] = R8_TEXT[kind];
+    return [
+      {
+        kind,
+        severity,
+        title: `${title} (${s.domain})`,
+        observed: `${s.selector}._domainkey.${s.domain}, key ${s.key.fingerprint.slice(0, 16)}…`,
+        evidenceRefs: [s.evidenceId],
+        explanation,
+        recommendation:
+          severity === 'caution'
+            ? 'Treat this message as unverified.'
+            : 'This alone is not a sign of fraud. Look at the other findings.',
+        group: `dkim:${s.evidenceId}`,
+      },
+    ];
+  });
+}
+
 const RULES: Record<RuleId, ((ctx: RuleContext) => Draft[]) | null> = {
   R1: r1,
   R2: r2,
@@ -393,7 +482,7 @@ const RULES: Record<RuleId, ((ctx: RuleContext) => Draft[]) | null> = {
   R5: r5,
   R6: r6,
   R7: r7,
-  R8: null,
+  R8: r8,
   R9: r9,
 };
 
@@ -409,7 +498,7 @@ export function runRules(ctx: RuleContext): RuleRun {
   const evaluated: RuleId[] = [];
   const notEvaluated: RuleId[] = [];
   for (const [ruleId, rule] of Object.entries(RULES) as [RuleId, typeof r1 | null][]) {
-    if (!rule || !ctx.config.enabled[ruleId]) {
+    if (!rule || !ctx.config.enabled[ruleId] || (ruleId === 'R8' && !ctx.history)) {
       notEvaluated.push(ruleId);
       continue;
     }

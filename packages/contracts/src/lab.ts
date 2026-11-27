@@ -91,3 +91,25 @@ export const LAB_DEFAULTS: Record<(typeof LAB_PRESETS)[number], LabScenario> = {
     disabledRules: [],
   },
 };
+
+export const LAB_PERSONAL_SIGNERS = ['alice', 'bob', 'eve', 'none'] as const;
+export const LAB_PERSONAL_MUTATIONS = ['editBody', 'changeOuterSubject'] as const;
+
+/**
+ * The personal-signature lab: a message that claims to be from Alice, signed (or not) by one of
+ * the lab people, then perhaps tampered with. Fixed lists only; the server validates strictly.
+ */
+export const LabPersonalScenario = z.strictObject({
+  signer: z.enum(LAB_PERSONAL_SIGNERS),
+  /** Is Alice's real key enrolled in the lab registry? */
+  aliceKeyEnrolled: z.boolean(),
+  mutations: z.array(z.enum(LAB_PERSONAL_MUTATIONS)).max(LAB_PERSONAL_MUTATIONS.length),
+});
+export type LabPersonalScenario = z.infer<typeof LabPersonalScenario>;
+
+export const LabPersonalResponse = z.object({
+  result: AnalysisResult,
+  notes: z.array(z.string()),
+  rawMessage: z.string(),
+});
+export type LabPersonalResponse = z.infer<typeof LabPersonalResponse>;

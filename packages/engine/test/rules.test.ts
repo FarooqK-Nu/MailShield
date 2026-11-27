@@ -104,6 +104,7 @@ function context(o: Options = {}): RuleContext {
   const ambiguous = from.length !== 1;
   const aligned = (o.aligned ?? true) ? signatures.filter((s) => s.status === 'pass') : [];
   return {
+    personal: null,
     sender: {
       from,
       fromAmbiguous: ambiguous,

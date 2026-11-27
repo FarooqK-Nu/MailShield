@@ -24,12 +24,12 @@ const pem = (label: string, der: ArrayBuffer) =>
     .match(/.{1,64}/g)!
     .join('\n')}\n-----END ${label}-----\n`;
 
-x509.cryptoProvider.set(webcrypto as unknown as Crypto);
+x509.cryptoProvider.set(webcrypto as never);
 
 async function keyPair() {
-  return (await webcrypto.subtle.generateKey(ALG, true, ['sign', 'verify'])) as CryptoKeyPair;
+  return (await webcrypto.subtle.generateKey(ALG, true, ['sign', 'verify'])) as webcrypto.CryptoKeyPair;
 }
-const save = async (name: string, pair: CryptoKeyPair, cert: x509.X509Certificate) => {
+const save = async (name: string, pair: webcrypto.CryptoKeyPair, cert: x509.X509Certificate) => {
   const pkcs8 = await webcrypto.subtle.exportKey('pkcs8', pair.privateKey);
   writeFileSync(new URL(`TEST-ONLY-lab-${name}.pem`, KEYS), pem('PRIVATE KEY', pkcs8));
   writeFileSync(new URL(`lab-${name}.crt`, SMIME), cert.toString('pem') + '\n');

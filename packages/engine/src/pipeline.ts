@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type {
   AnalysisResult,
   Evidence,
+  PersonalSignature,
   InputSource,
   SignatureEvidence,
   StageEvent,
@@ -11,6 +12,8 @@ import type {
 import { listSignatures, verifyDkim } from './authentication/dkim.ts';
 import { DMARC_LIMITATION, evaluateDmarc } from './authentication/dmarc.ts';
 import { readReceiverResults } from './authentication/receiver-results.ts';
+import { detectSmime, SMIME_COVERAGE, verifySmime } from './authentication/smime.ts';
+import type { KeyHistoryPort } from './history/classify.ts';
 import { toMailauthResolver, type DnsLookup } from './dns/mailauth-adapter.ts';
 import type { DnsResolver } from './dns/resolver.ts';
 import { emptyRegistry, inspectDomain, matchClaim, type RegistryPort } from './identity/matcher.ts';
@@ -31,11 +34,17 @@ export interface AnalysisInput {
   messageRef?: string;
 }
 
-/** Key history and the S/MIME trust store join these in later phases. */
 export interface EngineDeps {
   resolver: DnsResolver;
   /** Trusted identity registry; empty when not given. */
   registry?: RegistryPort;
+  /** Opt-in key history. Without it rule R8 is not evaluated. */
+  history?: KeyHistoryPort;
+  /**
+   * DER certificates trusted as S/MIME anchors. Live analysis passes none, so chain trust is
+   * reported as not checked; only the lab passes its own CA (decision A-17).
+   */
+  trustStore?: readonly Buffer[];
   config?: RuleConfig;
   clock: () => Date;
   onStage?: (event: StageEvent) => void;
@@ -47,8 +56,6 @@ interface StageReport {
   outputs?: Record<string, unknown>;
   limitations?: string[];
 }
-
-const SMIME_NOTE = 'Personal (S/MIME) signatures are not evaluated yet.';
 
 const ALIGNMENT_STAGE: Record<Evidence['status'], StageStatus> = {
   pass: 'pass',
@@ -251,7 +258,80 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     limitations.push(DMARC_LIMITATION);
   }
 
-  record('smime', deps.clock(), { status: 'not_evaluated', limitations: [SMIME_NOTE] });
+  let personal: PersonalSignature | null = null;
+  if (headerOnly) {
+    record('smime', deps.clock(), {
+      status: 'not_evaluated',
+      limitations: ['Header-only input: a personal signature needs the whole message.'],
+    });
+  } else {
+    const detected = detectSmime(raw, headers);
+    personal = await run('smime', async () => {
+      if (detected.kind === 'none') {
+        return { status: 'skipped', outputs: { signed: false }, limitations: [], value: null };
+      }
+      if (detected.kind !== 'detached') {
+        const reason =
+          detected.kind === 'opaque'
+            ? 'Opaque S/MIME (application/pkcs7-mime) is not supported yet.'
+            : detected.reason;
+        return {
+          status: 'warn',
+          limitations: [reason],
+          value: {
+            evidenceId: 'smime-1',
+            status: 'unsupported',
+            reason,
+            signatureValid: null,
+            chainTrusted: null,
+            emailBinding: null,
+            ekuEmailProtection: null,
+            timeValid: null,
+            revocation: 'unknown',
+            signer: null,
+            enrolledFor: null,
+            coverage: SMIME_COVERAGE,
+          } satisfies PersonalSignature,
+        };
+      }
+      const checked = await verifySmime(detected.part, {
+        trustStore: deps.trustStore ?? [],
+        now: deps.clock(),
+        fromAddress: fromBox?.address ?? null,
+      });
+      return {
+        status: checked.status === 'pass' ? 'pass' : checked.status === 'fail' ? 'fail' : 'warn',
+        inputs: { trustAnchors: deps.trustStore?.length ?? 0 },
+        outputs: {
+          signatureValid: checked.signatureValid,
+          chainTrusted: checked.chainTrusted,
+          emailBinding: checked.emailBinding,
+          timeValid: checked.timeValid,
+          revocation: checked.revocation,
+        },
+        limitations: [
+          SMIME_COVERAGE,
+          'Revocation is not checked: no revocation list or OCSP response is consulted.',
+          ...(deps.trustStore?.length
+            ? []
+            : ['No S/MIME trust anchors are configured, so the certificate chain is not checked.']),
+        ],
+        value: checked,
+      };
+    });
+  }
+  if (personal) {
+    authentication.push({
+      id: personal.evidenceId,
+      kind: 'smime',
+      source: evidenceSource,
+      status: personal.status,
+      domains: [],
+      reason: personal.reason,
+      observedAt,
+      details: {},
+    });
+  }
 
   const domains = await run('identity', async () => {
     const roles = [
@@ -299,6 +379,25 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     };
   });
 
+  if (personal?.signer) {
+    // An enrolled key must be active and unexpired; the key, not a trust store, is the anchor.
+    const now = deps.clock();
+    const fingerprint = personal.signer.fingerprint;
+    for (const identity of identities) {
+      const enrolled = identity.keys.some(
+        (k) =>
+          k.fingerprintSha256 === fingerprint &&
+          k.status === 'active' &&
+          (!k.expiresAt || new Date(k.expiresAt) > now),
+      );
+      if (enrolled && identity.kind === 'person') {
+        personal.enrolledFor = { identityId: identity.id, displayName: identity.displayName };
+        break;
+      }
+    }
+  }
+
+  const history = deps.history ? await deps.history.observations() : undefined;
   const links = mime?.html ? extractLinks(mime.html) : [];
   const ctx: RuleContext = {
     sender,
@@ -309,6 +408,8 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     links,
     headerOnly,
     config: deps.config ?? DEFAULT_RULE_CONFIG,
+    personal,
+    history,
   };
   const { findings } = await run('rules', async () => {
     const ran = runRules(ctx);
@@ -327,9 +428,10 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
         notEvaluated: ran.notEvaluated,
         findings: ran.findings.map((f) => f.id),
       },
-      limitations: ran.notEvaluated.includes('R8')
-        ? ['R8 (first contact and key change) needs key history and is not evaluated yet.']
-        : [],
+      limitations:
+        !ctx.history && ctx.config.enabled.R8
+          ? ['R8 (first contact and key change) needs key history, which is switched off.']
+          : [],
       value: ran,
     };
   });
@@ -357,6 +459,7 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     candidates,
     authentication,
     signatures,
+    personalSignature: personal,
     findings,
     links,
     rawHeaders: headers.fields.map(({ name, value, offset }) => ({ name, value, offset })),

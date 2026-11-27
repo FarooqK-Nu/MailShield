@@ -8,7 +8,7 @@ export interface RuleConfig {
 }
 
 export const DEFAULT_RULE_CONFIG: RuleConfig = {
-  version: '1.0.0',
+  version: '1.1.0',
   enabled: {
     R1: true,
     R2: true,
@@ -17,8 +17,8 @@ export const DEFAULT_RULE_CONFIG: RuleConfig = {
     R5: true,
     R6: true,
     R7: true,
-    // Needs key history (Phase 6).
-    R8: false,
+    // Not evaluated unless key history is switched on.
+    R8: true,
     R9: true,
   },
 };
