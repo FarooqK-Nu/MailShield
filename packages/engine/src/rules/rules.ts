@@ -257,7 +257,7 @@ function r6(ctx: RuleContext): Draft[] {
       observed: 'No locally verified signature aligns with the From domain',
       expected: `A valid signature from ${registrable(from.domain)}`,
       evidenceRefs: ['dmarc-local', ...signatureIds(ctx)],
-      explanation: `${from.domainUnicode} publishes DMARC p=${policy}. Nothing checked here proves the message comes from it. SPF cannot be checked for an uploaded message, so the receiver may still have accepted it.`,
+      explanation: `${from.domainUnicode} publishes DMARC p=${policy}. Nothing checked here proves the message comes from it. SPF cannot be checked here, so the receiving server may still have accepted it.`,
       recommendation: RECOMMEND_CHECK,
       group: domainGroup(from.domain),
     });

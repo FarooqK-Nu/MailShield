@@ -1,0 +1,28 @@
+Delivered-To: reader@gmail.example
+Received: by 2001:db8:6400:a084:b0:2e8:4e0d:39d8 with SMTP id x1csp1;
+        Fri, 27 Nov 2026 09:00:02 -0800 (PST)
+X-Received: by 2001:db8:a05:6a10::1 with SMTP id y2; Fri, 27 Nov 2026 09:00:02 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795770002; cv=none; d=google.com; s=arc-20240605; b=CCCC
+ARC-Authentication-Results: i=1; mx.google.com; dkim=pass header.i=@acme.example
+Return-Path: <bounce@acme.example>
+Received: from mail.acme.example (mail.acme.example. [192.0.2.25])
+        by mx.google.com with ESMTPS id z3si1.2026.11.27.09.00.01
+        for <reader@gmail.example>; Fri, 27 Nov 2026 09:00:01 -0800 (PST)
+Received-SPF: pass (google.com: domain of bounce@acme.example designates 192.0.2.25 as permitted sender) client-ip=192.0.2.25;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@acme.example header.s=s2026 header.b=BBBB;
+       spf=pass (google.com: domain of bounce@acme.example designates 192.0.2.25 as permitted sender) smtp.mailfrom=bounce@acme.example;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=acme.example
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example; s=s2026; h=from:to:subject:date; bh=AAAA; b=BBBB
+Received: from client.acme.example (client.acme.example [192.0.2.10])
+        by mail.acme.example with ESMTPSA id abc123
+        for <reader@gmail.example>; Fri, 27 Nov 2026 09:00:00 +0000
+From: Acme Billing <billing@acme.example>
+To: reader@gmail.example
+Subject: Synthetic Gmail fixture
+Date: Fri, 27 Nov 2026 09:00:00 +0000
+Message-ID: <synthetic-1@acme.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Synthetic test message. Not real mail.

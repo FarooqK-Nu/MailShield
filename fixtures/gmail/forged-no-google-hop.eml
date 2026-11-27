@@ -1,0 +1,14 @@
+Authentication-Results: mx.google.com; dkim=pass header.i=@acme.example; spf=pass smtp.mailfrom=acme.example; dmarc=pass header.from=acme.example
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example; s=s2026; h=from:to:subject:date; bh=AAAA; b=BBBB
+Received: from client.acme.example (client.acme.example [192.0.2.10])
+        by mail.acme.example with ESMTPSA id abc123
+        for <reader@gmail.example>; Fri, 27 Nov 2026 09:00:00 +0000
+From: Acme Billing <billing@acme.example>
+To: reader@gmail.example
+Subject: Synthetic Gmail fixture
+Date: Fri, 27 Nov 2026 09:00:00 +0000
+Message-ID: <synthetic-1@acme.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Synthetic test message. Not real mail.

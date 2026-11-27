@@ -204,12 +204,19 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
 
   const receiver = await run('receiver', async () => {
     const evidence = readReceiverResults(headers, source, observedAt);
-    return {
-      status: evidence.length ? 'warn' : 'skipped',
-      outputs: { headers: evidence.length, trusted: 0 },
-      limitations: evidence.length
+    const trusted = evidence.filter((e) => e.source === 'trusted_receiver');
+    const limitations = trusted.length
+      ? [
+          "Gmail's results are attributed to Google by header position (docs/context.md §7), not by a signature.",
+        ]
+      : evidence.length
         ? ['Authentication-Results headers in the message are shown for information only.']
-        : [],
+        : [];
+    return {
+      status: trusted.length ? 'pass' : evidence.length ? 'warn' : 'skipped',
+      inputs: { source },
+      outputs: { records: evidence.length, trusted: trusted.length },
+      limitations,
       value: evidence,
     };
   });
