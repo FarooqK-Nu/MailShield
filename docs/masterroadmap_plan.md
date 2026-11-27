@@ -210,9 +210,9 @@ gantt
 - Viva rehearsal: each member explains the other's module at a high level.
 
 **Exit criteria:**
-- [ ] All critical regression fixtures pass in CI.
-- [ ] Dashboard and lab fully usable without Gmail.
-- [ ] Unimplemented features are listed honestly in the README.
+- [x] All critical regression fixtures pass in CI.
+- [x] Dashboard and lab fully usable without Gmail.
+- [x] Unimplemented features are listed honestly in the README.
 
 ---
 

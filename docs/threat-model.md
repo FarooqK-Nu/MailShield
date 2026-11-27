@@ -1,4 +1,4 @@
-# Threat model (draft, Phase 0)
+# Threat model (reviewed in Phase 7)
 
 Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to `context.md` §8.
 
@@ -44,10 +44,13 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 | Lab trust leaks into live analysis | Separate package, trust store and resolver; clients cannot claim lab or fixture sources (7) | Import rule and route test done; Phase 5 added a startup check (the service refuses to run unless its resolver is `LiveResolver`) and a test that `/lab/run` never queries the live resolver |
 | Pairing code guessed | 8 digits, single use, replaced after 5 wrong tries, 10 tries per minute; tokens stored as hashes | Done |
 | Real mail committed to git | `private/` ignored | Done |
-| Vulnerable dependency | Lockfile, `npm audit` | Audit clean; add to CI in hardening |
+| Vulnerable dependency | Lockfile, `npm audit` | Audit clean; CI fails on high-severity advisories (Phase 7) |
+| Hostile or malformed message crashes or stalls the parser | Input limits; seeded fuzz test over noise, mutations, nesting, part and header floods (`packages/engine/test/fuzz.test.ts`) | Done (bounded test, not a long campaign) |
+| UI wording implies safety or accuses someone | Verdict vocabulary fixed in contracts; source scan test (`packages/ui/test/copy.test.ts`) | Done |
 
 ## Accepted limitations
 
+- Evaluation results come from synthetic fixtures written by the same authors as the rules; they are not evidence of real-world accuracy.
 - A process running as the same user can read the database and likely the session token.
 - DNS answers are not validated with DNSSEC; a resolver attacker can influence key lookups.
 - A compromised but authentic account passes authentication and identity checks.
