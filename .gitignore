@@ -14,3 +14,9 @@ private/
 fixtures/.smime-tmp/
 .mailshield/
 CLAUDE.md
+
+# Phase plans and the demo script are kept locally only
+docs/phase-5-plan.md
+docs/phase-6-plan.md
+docs/phase-7-plan.md
+docs/demo.md
