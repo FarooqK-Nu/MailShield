@@ -385,6 +385,15 @@ sequenceDiagram
 - Side panel states: `disconnected → connected → selected → confirming → ready → analyzing(stage) → result | error`. There's also a *Disconnect* action (`chrome.identity.removeCachedAuthToken` plus revoke guidance).
 - **Fallback path:** a drag-and-drop `.eml` zone in the side panel and dashboard.
 
+**As built in Phase 4**
+
+- The selection hint lists every *expanded* message of the open conversation (`{subject, messages: [{id, fromEmail, fromName}]}`); with more than one, the user chooses. Ids come from `data-legacy-message-id` or `data-message-id="#msg-f:<decimal>"`. The service worker accepts hints only from `https://mail.google.com/` content scripts and keeps them in `chrome.storage.session`.
+- Confirmation compares the hint's sender and subject with `format=metadata`; a difference is shown and must be acknowledged before Analyze. The consented picker lists the 10 newest messages' From/Subject/Date only after an explicit checkbox.
+- The service worker reports its own steps (size check, raw fetch, upload, analysis) to the panel; the engine's `StageEvent`s arrive with the result. Messages over 10 MiB by `sizeEstimate` are never fetched.
+- Stale-result protection is a pure reducer (`apps/extension/src/sidepanel/state.ts`): every selection and request has a number, and a reply is used only if its message id and number are current and the result's `messageRef` matches.
+- "Open full report" opens the dashboard's `#/report` page and hands it the result by `postMessage`, accepted only from the extension origin and the opener window (decision A-14).
+- Receiver trust follows `context.md` §7 as made precise in decision A-15.
+
 ---
 
 ## 7. Dashboard and lab (frontend)
