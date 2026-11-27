@@ -2,7 +2,9 @@ import { LiveResolver } from '@mailshield/engine';
 import { buildApp } from './app.ts';
 import { readConfig } from './config.ts';
 import { openDatabase } from './db/open.ts';
+import { KeyHistoryRepo } from './db/key-history-repo.ts';
 import { RegistryRepo } from './db/registry-repo.ts';
+import { SettingsRepo } from './db/settings-repo.ts';
 import { dnsWarning } from './dns-check.ts';
 import { fileSessionStore, Pairing } from './middleware/pairing-auth.ts';
 import { createLogger } from './middleware/redact-logger.ts';
@@ -22,12 +24,17 @@ const resolver = new LiveResolver({
 if (!(resolver instanceof LiveResolver)) throw new Error('Live analysis needs the live resolver.');
 void dnsWarning(resolver).then((warning) => warning && console.warn(warning));
 
-const registry = new RegistryRepo(openDatabase(config.dbPath));
+const db = openDatabase(config.dbPath);
+const registry = new RegistryRepo(db);
+const settings = new SettingsRepo(db);
+const history = new KeyHistoryRepo(db);
 
 const app = buildApp({
   config,
   resolver,
   registry,
+  settings,
+  history,
   pairing,
   logger: createLogger(),
   clock: () => new Date(),

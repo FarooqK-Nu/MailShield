@@ -64,6 +64,12 @@ export class Pairing {
     return token;
   }
 
+  /** Forgets every paired client; each must pair again with a new code. */
+  revokeAll(): void {
+    this.sessions = [];
+    this.store.save([]);
+  }
+
   isValid(token: string): boolean {
     return this.sessions.some((hash) => matches(token, Buffer.from(hash, 'hex')));
   }

@@ -1,10 +1,11 @@
-import { LabScenario } from '@mailshield/contracts';
+import { LabPersonalScenario, LabScenario } from '@mailshield/contracts';
 import { analyze } from '@mailshield/engine';
 import {
   fixtureRegistry,
   FixtureResolver,
   listFixtures,
   loadFixture,
+  runPersonalScenario,
   runScenario,
 } from '@mailshield/lab';
 import express, { Router, type RequestHandler } from 'express';
@@ -50,6 +51,17 @@ export function labRoutes(guards: RequestHandler[]): Router {
       const scenario = LabScenario.safeParse(req.body);
       if (!scenario.success) return sendProblem(res, 'invalid_request');
       res.json(await runScenario(scenario.data));
+    },
+  );
+
+  router.post(
+    '/lab/personal',
+    ...guards,
+    express.json({ limit: '4kb', inflate: false }),
+    async (req, res) => {
+      const scenario = LabPersonalScenario.safeParse(req.body);
+      if (!scenario.success) return sendProblem(res, 'invalid_request');
+      res.json(await runPersonalScenario(scenario.data));
     },
   );
 
