@@ -291,3 +291,85 @@ The lab is working end to end and meets all four exit criteria in tests. A user 
 ### 11. Next phase
 
 Phase 6: personal signatures and key history (S/MIME with the lab certificate authority, key enrolment, key history, redacted report export, settings page). Carried forward: R8 is still disabled, the "Export redacted report" action remains disabled, and on this Windows machine tests must run from `D:\` in PowerShell.
+
+---
+
+## Phase 6: Personal signatures and key history
+
+### 1. Phase objective
+
+Go beyond domain identity to personal identity: verify S/MIME signatures, let the user enrol a person's key, record signing-key history (opt-in), and add the redacted report export and a settings page. Plan: `docs/phase-6-plan.md`, decision A-17.
+
+### 2. Work completed (all items completed and tested unless marked)
+
+- S/MIME verification in the engine with `pkijs`, reporting the signature, chain, email binding, EKU (extended key usage), time, revocation and signer fingerprint separately.
+- A lab certificate authority with Alice, Bob and Eve certificates, CMS (Cryptographic Message Syntax) signing, and a personal-signature lab with five guided challenges.
+- `corroborated_personal` identity from an enrolled key; rule R2 uses enrolled keys; rule R8 uses key history.
+- Server: settings (audited), opt-in key history with classification, certificate preview, session revocation, `POST /lab/personal`.
+- Dashboard: personal signature card, three-step key enrolment, Key history page, Settings page, redacted report export (JSON and printable HTML). Side panel: personal signature card and the export action, now enabled.
+- OpenSSL `cms -verify` cross-check tests.
+
+### 3. Implementation details
+
+- `packages/engine/src/authentication/smime.ts` (new): `detectSmime` cuts the two parts of a `multipart/signed` message out of the original buffer by offset; `verifySmime` verifies with pkijs. `packages/engine/src/history/classify.ts` (new): `classifyKey`, used by both R8 and the service.
+- `packages/engine/src/pipeline.ts`: real `smime` stage (`skipped` when unsigned), `personalSignature` in the result, enrolled-key lookup, optional `history` and `trustStore` dependencies. `rules/rules.ts`: R2 rewritten for keys, R8 added. `rules/verdict.ts`: personal corroboration in rows 4 and 5. `rules/config.ts`: version 1.1.0, R8 on by default but not evaluated without history.
+- `packages/contracts`: `PersonalSignature`, `history.ts` (observations, settings, key preview), `LabPersonalScenario`.
+- `packages/lab/src/smime.ts` (new): CMS signing, lab trust store, personal scenario runner. `fixtures/keys/TEST-ONLY-lab-{ca,alice,bob,eve}.pem` and `fixtures/smime/lab-*.crt` generated once by `tools/gen-lab-certs.ts`. `fixtures/registry/fictional-orgs.json`: Alice is now `user_trusted`; Bob added.
+- Server: `db/migrations/0002_settings.sql` (setting table; audit table rebuilt to allow `settings`), `db/settings-repo.ts`, `db/key-history-repo.ts`, `routes/settings.ts`, changes to `routes/analyze.ts`, `routes/lab.ts`, `app.ts`, `server.ts`, `pairing-auth.ts` (`revokeAll`), `public-key.ts` (certificate details).
+- `packages/ui`: `PersonalSignatureCard.tsx`, `redacted-report.ts`. Web: `routes/KeyHistory.tsx`, `routes/Settings.tsx`, `features/registry/KeyEnrolment.tsx`, `features/lab/PersonalLab.tsx`, `personalChallenges.ts`, `features/rules.ts`; Registry, Lab, ResultView and navigation updated. Extension: `sidepanel/ResultPanel.tsx`.
+
+### 4. Architecture and design decisions
+
+- **The enrolled key is the trust anchor for a person.** The live service has no trust anchors, so chain trust is reported as "not checked" there, and only `packages/lab` passes the lab CA. This makes "the lab CA is never trusted live" true by construction, and a test proves it.
+- **Four separate facts** (valid, trusted, bound to the sender, enrolled) are shown separately, as the roadmap requires. Only a valid signature, bound to the From address, in date, from an enrolled key gives `corroborated_personal`.
+- **R8 severities.** `info` for first contact, rotation and key change (as `context.md` says); `caution` only for a key the user marked revoked. The roadmap names "revoked" but gives no severity, so this is a judgement call to confirm.
+- **History is opt-in and DKIM only**; S/MIME keys are covered by enrolment (A-17).
+- Alternatives rejected: a revocation check (needs network access, invariant 5); a trust-store UI (beyond semester scope).
+
+### 5. Technical details
+
+- Signed bytes: the first MIME part including its headers, up to the CRLF before the closing boundary. Outer headers are never described as signed (the card and a limitation say so).
+- Key classification: no record for the domain gives first contact; same selector and key gives known; same selector with a different key gives unexpected change; a new selector gives rotation (older current keys become `rotated`); a user-revoked fingerprint gives revoked.
+- Redacted report: verdict, findings, domains, key fingerprints and personal-signature answers. It omits Subject, body, raw headers, link targets and notes. The HTML output escapes every value and carries a restrictive Content-Security-Policy.
+- Lab clock is fixed at 2026-06-01T12:00Z; certificates are valid 2026-01-01 to 2036-01-01.
+
+### 6. Dependencies
+
+Added `reflect-metadata` (root dev dependency): `@peculiar/x509`, used only by the certificate generator, needs a reflection polyfill. `@peculiar/x509` was already declared by the lab package. `npm audit`: 0 vulnerabilities.
+
+### 7. Testing and verification
+
+| Check | Result |
+|---|---|
+| `npx vitest run` from `D:\` | 29 files, 348 tests pass (32 new) |
+| Exit 1: Alice, key enrolled | `corroborated_personal`, verdict "no concerning mismatch" |
+| Exit 2: Eve, valid and chain-trusted by the lab CA | signature valid, email binding false, not enrolled, `possible_impersonation` |
+| Exit 3: tampered body; changed outer Subject | body: `fail`; Subject: signature stays valid and the coverage text says it is not signed |
+| Exit 4: lab CA in live mode | `chainTrusted` is `null` and no corroboration, tested through the real `/analyze` route |
+| OpenSSL cross-check (OpenSSL 3.5.4) | agrees on valid, tampered and unsigned-Subject messages |
+| R8, key history, settings, audit, revocation, preview | `engine/test/rules.test.ts`, `server/test/phase6.test.ts` |
+| `npm run typecheck`, `npx eslint .`, `npm run build` | pass |
+| Browser check (temporary Playwright script, removed) | real service and dashboard: pairing, personal lab, Eve finding, challenges marked solved, three-step enrolment (button disabled until the comparison step), settings save with confirmation, Key history page; no console errors; a screenshot was inspected |
+
+Not verified: the side panel changes were type-checked and built but not exercised in Chrome; file downloads were not exercised in a browser; narrow-screen and light-theme layout were not inspected; opaque `pkcs7-mime`, RSA-PSS and ECDSA signatures and real-client S/MIME messages are untested.
+
+### 8. Problems and solutions
+
+- A regex built in a template literal lost its `\s` escapes, so an unquoted boundary would have been mis-read. Found by lint; fixed with `String.raw` and a regression test.
+- `@peculiar/x509` failed without a reflection polyfill; added `reflect-metadata`.
+- SQLite cannot alter a CHECK constraint, so the migration rebuilds the audit table.
+
+### 9. Outstanding issues
+
+- Opaque S/MIME (`application/pkcs7-mime`) is reported as unsupported.
+- Revocation is always "unknown".
+- Key history covers DKIM keys only; there is no Playwright test for the new pages; extension E2E remains Phase 7.
+- The lab message is plain text, so R7 still cannot be demonstrated there.
+
+### 10. Phase outcome
+
+All four roadmap exit criteria pass in tests. A user can enrol a person's key, see a personal signature judged in four separate ways, keep an opt-in key history, export a redacted report and manage settings.
+
+### 11. Next phase
+
+Phase 7: evaluation (40 or more labelled fixtures, dev and held-out split), hardening, documentation and delivery. Carried forward: tests must run from `D:\` in PowerShell; extension and new-page browser tests; the R8 revoked-severity decision.

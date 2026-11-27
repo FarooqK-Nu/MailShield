@@ -182,10 +182,10 @@ gantt
 | | Settings page: consent/privacy, history retention (off by default), rule sensitivity (audited), DNS behaviour, theme, local data deletion and reset, session token revocation |
 
 **Exit criteria:**
-- [ ] Alice's signed message with her key enrolled → `corroborated_personal`.
-- [ ] Eve's valid-but-unenrolled signature → signature valid, identity **not** confirmed.
-- [ ] Tampered S/MIME → fail; unsigned outer Subject is never described as personally signed.
-- [ ] Lab CA is never trusted in live mode (invariant test).
+- [x] Alice's signed message with her key enrolled → `corroborated_personal`.
+- [x] Eve's valid-but-unenrolled signature → signature valid, identity **not** confirmed.
+- [x] Tampered S/MIME → fail; unsigned outer Subject is never described as personally signed.
+- [x] Lab CA is never trusted in live mode (invariant test).
 
 ---
 
