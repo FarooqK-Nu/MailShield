@@ -1,31 +1,22 @@
-import type { AnalysisResult, Evidence, Mailbox } from '@mailshield/contracts';
-import { StatusBadge, VerdictCard } from '@mailshield/ui';
+import type { AnalysisResult, Mailbox } from '@mailshield/contracts';
+import {
+  anchorId,
+  EvidenceItem,
+  Findings,
+  IdentityComparison,
+  RefLinks,
+  VerdictCard,
+  type InspectorTab,
+  type Target,
+} from '@mailshield/ui';
 import { FlaskConical } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { DkimInspector } from '../features/inspector/DkimInspector.tsx';
 import { DomainInspector } from '../features/inspector/DomainInspector.tsx';
-import { Findings } from '../features/inspector/Findings.tsx';
-import { IdentityComparison } from '../features/inspector/IdentityComparison.tsx';
 import { Pipeline } from '../features/inspector/Pipeline.tsx';
 import { Preview } from '../features/inspector/Preview.tsx';
 import { RawHeaders } from '../features/inspector/RawHeaders.tsx';
-import { RefLinks } from '../features/inspector/RefLinks.tsx';
 import { RegistryMatches } from '../features/inspector/RegistryMatches.tsx';
-import { anchorId, type InspectorTab, type Target } from '../features/inspector/targets.ts';
-
-const SOURCES: Record<Evidence['source'], string> = {
-  local_crypto: 'Checked here',
-  trusted_receiver: 'Reported by your mail provider',
-  untrusted_header: 'Written in the message (not proof)',
-  registry: 'Your registry',
-  heuristic: 'Heuristic',
-  lab: 'Lab (simulated)',
-};
-
-const KINDS: Partial<Record<Evidence['kind'], string>> = {
-  dmarc: 'DMARC alignment (DKIM only; policy found by RFC 9989 DNS tree walk)',
-  receiver: 'Authentication-Results header',
-};
 
 const TABS: [InspectorTab, string][] = [
   ['identity', 'Identity'],
@@ -52,7 +43,10 @@ export function ResultView({ result }: { result: AnalysisResult }) {
   const [tab, setTab] = useState<InspectorTab>('findings');
   const { sender } = result;
   const simulated = result.inputSource === 'fixture' || result.inputSource === 'lab';
-  const otherEvidence = result.authentication.filter((e) => e.kind !== 'dkim');
+  // Locally verified DKIM is shown as signature cards; the provider's DKIM report stays here.
+  const otherEvidence = result.authentication.filter(
+    (e) => e.kind !== 'dkim' || e.source === 'trusted_receiver',
+  );
   const rows: [string, string][] = [
     ['From', sender.from.map(mailbox).join(', ') || '(none)'],
     ['Reply-To', sender.replyTo.map(mailbox).join(', ') || '(none)'],
@@ -146,20 +140,7 @@ export function ResultView({ result }: { result: AnalysisResult }) {
             <Section id="inspector-evidence" title="Other evidence">
               <ul className="space-y-3">
                 {otherEvidence.map((e) => (
-                  <li
-                    key={e.id}
-                    id={anchorId(e.id)}
-                    className="rounded-lg border border-slate-300 p-4 text-sm dark:border-slate-700"
-                  >
-                    <p className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold">{KINDS[e.kind] ?? e.kind}</span>
-                      <StatusBadge status={e.status} />
-                    </p>
-                    <p className="mt-1">{e.reason}</p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Source: {SOURCES[e.source]}
-                    </p>
-                  </li>
+                  <EvidenceItem key={e.id} evidence={e} />
                 ))}
               </ul>
             </Section>
