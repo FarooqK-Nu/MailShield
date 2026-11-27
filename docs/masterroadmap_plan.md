@@ -161,10 +161,10 @@ gantt
 | | Scenario builder: change dummy avatar; compose a short local test message |
 
 **Exit criteria:**
-- [ ] Changing one character in the body flips DKIM to `fail` and shows a completely different body hash.
-- [ ] Changing an **unsigned** header leaves DKIM `pass` and the UI explains why.
-- [ ] Before/after mode shows the lookalike passing “standard auth” but triggering R1/R3 with rules on.
-- [ ] Lab works with the network disabled.
+- [x] Changing one character in the body flips DKIM to `fail` and shows a completely different body hash.
+- [x] Changing an **unsigned** header leaves DKIM `pass` and the UI explains why.
+- [x] Before/after mode shows the lookalike passing “standard auth” but triggering R1/R3 with rules on.
+- [x] Lab works with the network disabled.
 
 ---
 

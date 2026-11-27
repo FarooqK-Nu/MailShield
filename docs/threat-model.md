@@ -41,7 +41,7 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 | Active content or tracking pixels in preview | DOMPurify, link targets removed, sandboxed iframe with CSP `default-src 'none'`; Playwright network test (5) | Done |
 | Content or secrets in logs | Redacting logger and log-capture test (6) | Done |
 | Lookalike or confusable domain | Boundary matching, UTS #39 skeletons (4) | Phase 2 |
-| Lab trust leaks into live analysis | Separate package, trust store and resolver; clients cannot claim lab or fixture sources (7) | Import rule and route test done; runtime check Phase 5 |
+| Lab trust leaks into live analysis | Separate package, trust store and resolver; clients cannot claim lab or fixture sources (7) | Import rule and route test done; Phase 5 added a startup check (the service refuses to run unless its resolver is `LiveResolver`) and a test that `/lab/run` never queries the live resolver |
 | Pairing code guessed | 8 digits, single use, replaced after 5 wrong tries, 10 tries per minute; tokens stored as hashes | Done |
 | Real mail committed to git | `private/` ignored | Done |
 | Vulnerable dependency | Lockfile, `npm audit` | Audit clean; add to CI in hardening |
