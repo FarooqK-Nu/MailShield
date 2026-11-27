@@ -391,7 +391,11 @@ export function Lab({ client, onUnauthorized }: Props) {
                       <Diff value={base?.key?.fingerprint} other={sig.key?.fingerprint} />
                     </p>
                     <p>
-                      <Diff value={sig.key?.fingerprint} other={base?.key?.fingerprint} />
+                      {sig.key ? (
+                        <Diff value={sig.key.fingerprint} other={base?.key?.fingerprint} />
+                      ) : (
+                        'Not reported: verification stopped before the key was used.'
+                      )}
                     </p>
                     <p>
                       Signed headers: {sig.signedHeaders.join(', ') || '(none)'}. Not covered:{' '}
