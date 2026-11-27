@@ -1,0 +1,597 @@
+{
+  "generatedAt": "2026-11-27T03:16:44.010Z",
+  "split": "dev",
+  "counts": {
+    "total": 28,
+    "byCategory": {
+      "legitimate": 6,
+      "tampered": 5,
+      "impersonation": 8,
+      "ambiguous": 5,
+      "edge": 4
+    },
+    "byTruth": {
+      "legitimate": 8,
+      "suspicious": 13,
+      "unknown": 7
+    }
+  },
+  "binary": {
+    "confusion": {
+      "truePositive": 9,
+      "falsePositive": 0,
+      "trueNegative": 8,
+      "falseNegative": 0,
+      "abstainedSuspicious": 4,
+      "abstainedLegitimate": 0
+    },
+    "precision": {
+      "numerator": 9,
+      "denominator": 9,
+      "value": 1
+    },
+    "recall": {
+      "numerator": 9,
+      "denominator": 13,
+      "value": 0.6923076923076923
+    },
+    "f1": 0.8181818181818181
+  },
+  "unknown": {
+    "abstentionRate": {
+      "numerator": 5,
+      "denominator": 7,
+      "value": 0.7142857142857143
+    },
+    "flagged": 2,
+    "cleared": 0
+  },
+  "overallAbstentionRate": {
+    "numerator": 9,
+    "denominator": 28,
+    "value": 0.32142857142857145
+  },
+  "cases": [
+    {
+      "id": "acme-html-signed",
+      "title": "Signed HTML message with matching link",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "The link text and target both use acme.example. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "acme-plain-url-matches",
+      "title": "Plain text with an Acme link",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "A valid Acme message that mentions https://acme.example/help. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "acme-subdomain-signed",
+      "title": "Signed by an Acme subdomain",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "From and signed by mail.acme.example; the registry includes subdomains. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "body-tampered",
+      "title": "Body changed after signing",
+      "category": "tampered",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "The same message with one phrase edited after it was signed. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "brand-dmarc-unaligned",
+      "title": "Acme address, someone else’s signature",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": true,
+      "explanation": "From acme.example (p=reject), signed only by bulk-mailer.example (A-8). Missed: the engine abstained, which counts against recall.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "display-name-spoof",
+      "title": "Acme name on an unrelated domain",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "possible_impersonation",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "The display name says Acme Billing; the address and signature belong to mailer-help.example. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R1",
+          "title": "Display name claims Acme Corporation, but the domain is not theirs",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "dns-timeout-globex",
+      "title": "Globex key lookup times out",
+      "category": "ambiguous",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": false,
+      "explanation": "A signed Globex message checked while DNS does not answer. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "globex.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "dns-timeout",
+      "title": "DNS does not answer",
+      "category": "ambiguous",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": false,
+      "explanation": "A signed message checked while the DNS key lookup times out. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "forwarded-list-footer",
+      "title": "Mailing list adds a footer",
+      "category": "edge",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": true,
+      "explanation": "A real Acme message forwarded by a list that appended text, so the body hash no longer matches. The engine raised a concern on a case that cannot be judged from the message alone (for example a legitimate forward). The wording shown to the user is a concern, not an accusation.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "forwarded-subject-prefix",
+      "title": "Mailing list prefixes the Subject",
+      "category": "edge",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": true,
+      "explanation": "A real Acme message forwarded by a list that added “[staff]” to the Subject. The engine raised a concern on a case that cannot be judged from the message alone (for example a legitimate forward). The wording shown to the user is a concern, not an accusation.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "globex-link-mismatch",
+      "title": "Globex link shows one site, opens another",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": true,
+      "explanation": "The visible link is globex.example but the target is globex-hr.example. Missed: the engine abstained, which counts against recall.",
+      "findings": [
+        {
+          "ruleId": "R7",
+          "title": "A link goes somewhere other than it says",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "globex-payroll-signed",
+      "title": "Signed payroll notice from Globex",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "A fictional Globex message with a valid aligned DKIM signature. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "homoglyph-domain",
+      "title": "Cyrillic look-alike of acme.example",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "possible_impersonation",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "The first letter of the domain is Cyrillic; the domain is signed correctly. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R1",
+          "title": "Display name claims Acme Corporation, but the domain is not theirs",
+          "severity": "high"
+        },
+        {
+          "ruleId": "R3",
+          "title": "аcme.example looks like acme.example",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "legit-signed",
+      "title": "Signed message from Acme",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "A fictional Acme message with a valid DKIM signature from acme.example. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "link-mismatch",
+      "title": "Link text and target differ",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": true,
+      "explanation": "A valid Acme message whose link shows acme.example but opens acme-login.example. Missed: the engine abstained, which counts against recall.",
+      "findings": [
+        {
+          "ruleId": "R7",
+          "title": "A link goes somewhere other than it says",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "lookalike-authenticated",
+      "title": "Authenticated look-alike domain",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "possible_impersonation",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "“Acme Support” from acrne.example, with a valid DKIM signature for acrne.example. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R1",
+          "title": "Display name claims Acme Corporation, but the domain is not theirs",
+          "severity": "high"
+        },
+        {
+          "ruleId": "R3",
+          "title": "acrne.example looks like acme.example",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "missing-dns-key",
+      "title": "Public key no longer published",
+      "category": "ambiguous",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": false,
+      "explanation": "A signed message whose selector has no DNS record. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "multi-signature",
+      "title": "Two signatures",
+      "category": "legitimate",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "Signed by Acme and by its mail provider acme-mail.example. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "outsourced-sender",
+      "title": "Sent by Acme’s mail provider",
+      "category": "edge",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "From and signed by acme-mail.example, an approved service provider for Acme. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "partial-body",
+      "title": "Signature covers part of the body",
+      "category": "edge",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "no_concerning_mismatch",
+      "outcome": "cleared",
+      "disagreement": false,
+      "explanation": "Signed with l=20; text was added after the signed length. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R9",
+          "title": "The signature from acme.example covers only part of the body",
+          "severity": "info"
+        }
+      ]
+    },
+    {
+      "id": "reply-to-divergence",
+      "title": "Replies go elsewhere",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": true,
+      "explanation": "A valid Acme message whose Reply-To points to payhelp.example. Missed: the engine abstained, which counts against recall.",
+      "findings": [
+        {
+          "ruleId": "R5",
+          "title": "Replies go to a different domain",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "tampered-appended-text",
+      "title": "Text appended after signing",
+      "category": "tampered",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "A payment request was added at the end. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "tampered-globex-body",
+      "title": "Globex body edited",
+      "category": "tampered",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "One sentence changed after signing. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from globex.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "globex.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after globex.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "tampered-signature-value",
+      "title": "Signature value corrupted",
+      "category": "tampered",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "Characters of b= were altered. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "tampered-subject",
+      "title": "Subject changed after signing",
+      "category": "tampered",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "authentication_concern",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "Subject edited after the signature. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "The signature from acme.example is invalid",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        },
+        {
+          "ruleId": "R9",
+          "title": "The message changed after acme.example signed it",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "unsigned-brand-spoof",
+      "title": "Unsigned Acme name from a free-mail domain",
+      "category": "impersonation",
+      "split": "dev",
+      "truth": "suspicious",
+      "verdict": "possible_impersonation",
+      "outcome": "flagged",
+      "disagreement": false,
+      "explanation": "No signature at all; the display name claims Acme. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R1",
+          "title": "Display name claims Acme Corporation, but the domain is not theirs",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "unsigned-unknown-sender",
+      "title": "Unsigned message from an unregistered sender",
+      "category": "ambiguous",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": false,
+      "explanation": "Nothing in the registry matches and there is no signature. Agrees with the ground truth.",
+      "findings": []
+    },
+    {
+      "id": "unsigned",
+      "title": "Unsigned message",
+      "category": "ambiguous",
+      "split": "dev",
+      "truth": "unknown",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": false,
+      "explanation": "An Acme message with no DKIM signature, although Acme publishes p=reject. Agrees with the ground truth.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "acme.example asks receivers to reject unauthenticated mail",
+          "severity": "caution"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "All messages are synthetic and use reserved .example domains. These figures describe this fixture set only and are not an estimate of accuracy on real mail.",
+    "Ground truth is set when a fixture is created and does not depend on the engine output.",
+    "No authorised real messages were available, so none are included."
+  ]
+}
