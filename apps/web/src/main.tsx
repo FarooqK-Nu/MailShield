@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { createClient, session } from './api/client.ts';
 import { PairingScreen } from './PairingScreen.tsx';
 import { Analyze } from './routes/Analyze.tsx';
+import { Lab } from './routes/Lab.tsx';
 import { Overview } from './routes/Overview.tsx';
 import { Registry } from './routes/Registry.tsx';
 import { Report } from './routes/Report.tsx';
@@ -14,6 +15,7 @@ const PAGES = [
   { hash: '#/', label: 'Overview' },
   { hash: '#/analyze', label: 'Analyze' },
   { hash: '#/registry', label: 'Registry' },
+  { hash: '#/lab', label: 'Lab' },
 ] as const;
 /** Opened by the side panel's "Open full report"; not in the navigation (decision A-14). */
 const REPORT = '#/report';
@@ -50,7 +52,7 @@ function App() {
 
   return (
     <div
-      className={`mx-auto px-4 py-6 ${page === '#/analyze' || page === REPORT ? 'max-w-7xl' : 'max-w-3xl'}`}
+      className={`mx-auto px-4 py-6 ${page === '#/analyze' || page === '#/lab' || page === REPORT ? 'max-w-7xl' : 'max-w-3xl'}`}
     >
       <header className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="mr-auto text-2xl font-semibold">MailShield</h1>
@@ -76,6 +78,7 @@ function App() {
       <main>
         {client && page === '#/registry' && <Registry client={client} onUnauthorized={forget} />}
         {client && page === '#/' && <Overview />}
+        {client && page === '#/lab' && <Lab client={client} onUnauthorized={forget} />}
         {client && page === '#/analyze' && <Analyze client={client} onUnauthorized={forget} />}
         {/* The report needs no pairing: its data comes from the extension, not the service. */}
         {page === REPORT && <Report />}
