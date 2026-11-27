@@ -5,6 +5,7 @@ import {
   Identity,
   IdentityList,
   ImportResult,
+  EvaluationReport,
   KeyHistoryList,
   KeyPreview,
   LabPersonalResponse,
@@ -125,6 +126,8 @@ export function createClient(token: string) {
         body: text,
       }),
     previewKey: (pem: string) => request(KeyPreview, '/keys/preview', sendJson('POST', { pem })),
+    evaluation: (split: 'dev' | 'heldout' | 'all') =>
+      request(EvaluationReport, `/evaluation/${split}`, { headers: auth }),
     settings: () => request(Settings, '/settings', { headers: auth }),
     saveSettings: (input: SettingsInput) => request(Settings, '/settings', sendJson('PUT', input)),
     resetSettings: () => request(Settings, '/settings/reset', { method: 'POST', headers: auth }),

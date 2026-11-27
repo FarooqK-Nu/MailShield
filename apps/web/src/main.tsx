@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { createClient, session } from './api/client.ts';
 import { PairingScreen } from './PairingScreen.tsx';
 import { Analyze } from './routes/Analyze.tsx';
+import { Evaluation } from './routes/Evaluation.tsx';
 import { KeyHistory } from './routes/KeyHistory.tsx';
 import { Lab } from './routes/Lab.tsx';
 import { Overview } from './routes/Overview.tsx';
@@ -19,6 +20,7 @@ const PAGES = [
   { hash: '#/registry', label: 'Registry' },
   { hash: '#/keys', label: 'Key history' },
   { hash: '#/lab', label: 'Lab' },
+  { hash: '#/evaluation', label: 'Evaluation' },
   { hash: '#/settings', label: 'Settings' },
 ] as const;
 /** Opened by the side panel's "Open full report"; not in the navigation (decision A-14). */
@@ -56,7 +58,7 @@ function App() {
 
   return (
     <div
-      className={`mx-auto px-4 py-6 ${page === '#/analyze' || page === '#/lab' || page === REPORT ? 'max-w-7xl' : 'max-w-3xl'}`}
+      className={`mx-auto px-4 py-6 ${page === '#/analyze' || page === '#/lab' || page === '#/evaluation' || page === REPORT ? 'max-w-7xl' : 'max-w-3xl'}`}
     >
       <header className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="mr-auto text-2xl font-semibold">MailShield</h1>
@@ -84,6 +86,9 @@ function App() {
         {client && page === '#/' && <Overview />}
         {client && page === '#/keys' && <KeyHistory client={client} onUnauthorized={forget} />}
         {client && page === '#/settings' && <Settings client={client} onUnauthorized={forget} />}
+        {client && page === '#/evaluation' && (
+          <Evaluation client={client} onUnauthorized={forget} />
+        )}
         {client && page === '#/lab' && <Lab client={client} onUnauthorized={forget} />}
         {client && page === '#/analyze' && <Analyze client={client} onUnauthorized={forget} />}
         {/* The report needs no pairing: its data comes from the extension, not the service. */}
