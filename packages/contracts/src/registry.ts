@@ -129,7 +129,7 @@ export const AuditEvent = z.object({
   id: z.string(),
   at: z.iso.datetime(),
   actor: z.string(),
-  entityType: z.enum(['identity', 'registry']),
+  entityType: z.enum(['identity', 'registry', 'settings']),
   entityId: z.string(),
   action: AuditAction,
   before: z.unknown().nullable(),

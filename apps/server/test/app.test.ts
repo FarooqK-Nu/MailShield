@@ -13,7 +13,9 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
 import { openDatabase } from '../src/db/open.ts';
+import { KeyHistoryRepo } from '../src/db/key-history-repo.ts';
 import { RegistryRepo } from '../src/db/registry-repo.ts';
+import { SettingsRepo } from '../src/db/settings-repo.ts';
 import { readConfig } from '../src/config.ts';
 import { dnsWarning } from '../src/dns-check.ts';
 import { fileSessionStore, Pairing, type SessionStore } from '../src/middleware/pairing-auth.ts';
@@ -32,11 +34,14 @@ function setup() {
   // The "live" resolver knows nothing, so fixture mail can only verify through the lab.
   const resolver = new FixtureResolver({});
   const pairing = new Pairing(store, (code) => codes.push(code));
-  const registry = new RegistryRepo(openDatabase(':memory:'));
+  const db = openDatabase(':memory:');
+  const registry = new RegistryRepo(db);
   const app = buildApp({
     config,
     resolver,
     registry,
+    settings: new SettingsRepo(db),
+    history: new KeyHistoryRepo(db),
     pairing,
     logger: createLogger({ write: (line) => void logs.push(line) }),
     clock: () => new Date(legit.label.now),

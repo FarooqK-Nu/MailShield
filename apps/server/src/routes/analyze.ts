@@ -1,13 +1,24 @@
 import { InputSource, MAX_MESSAGE_BYTES } from '@mailshield/contracts';
-import { analyze, AnalysisError, type DnsResolver, type RegistryPort } from '@mailshield/engine';
+import {
+  analyze,
+  AnalysisError,
+  DEFAULT_RULE_CONFIG,
+  type DnsResolver,
+  type RegistryPort,
+  type RuleConfig,
+} from '@mailshield/engine';
 import express, { Router, type Request, type RequestHandler } from 'express';
 import type { Logger } from 'pino';
 import { z } from 'zod';
+import type { KeyHistoryRepo } from '../db/key-history-repo.ts';
+import type { SettingsRepo } from '../db/settings-repo.ts';
 import { sendProblem } from '../middleware/errors.ts';
 
 export interface AnalyzeDeps {
   resolver: DnsResolver;
   registry: RegistryPort;
+  settings: SettingsRepo;
+  history: KeyHistoryRepo;
   clock: () => Date;
   logger: Logger;
   extensionOrigin: string;
@@ -35,11 +46,30 @@ export function analyzeRoutes(deps: AnalyzeDeps, guards: RequestHandler[]): Rout
 
   const run = async (input: Parameters<typeof analyze>[0]) => {
     const started = performance.now();
+    const { historyEnabled, disabledRules } = deps.settings.get();
+    const config: RuleConfig = {
+      ...DEFAULT_RULE_CONFIG,
+      enabled: {
+        ...DEFAULT_RULE_CONFIG.enabled,
+        ...Object.fromEntries(disabledRules.map((id) => [id, false])),
+      },
+    };
+    // No trustStore: the live service has no S/MIME anchors, so the lab CA can never be trusted.
     const result = await analyze(input, {
       resolver: deps.resolver,
       registry: deps.registry,
+      history: historyEnabled ? deps.history : undefined,
+      config,
       clock: deps.clock,
     });
+    // Opt-in recording of the keys that verified, after the rules read the earlier history.
+    if (historyEnabled && input.source !== 'header_paste') {
+      for (const s of result.signatures) {
+        if (s.status === 'pass' && s.key && s.domain && s.selector) {
+          deps.history.record(s.domain, s.selector, s.key.fingerprint);
+        }
+      }
+    }
     deps.logger.info(
       { analysisId: result.analysisId, ms: Math.round(performance.now() - started) },
       'analysis complete',

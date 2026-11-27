@@ -10,12 +10,26 @@
       "provenanceUrl": null,
       "notes": "Fictional organization for demos and tests. Uses a reserved .example domain.",
       "lastReviewed": "2026-11-27T00:00:00.000Z",
-      "aliases": ["Acme", "Acme Support", "Acme Billing"],
-      "domains": [
-        { "domain": "acme.example", "includeSubdomains": true, "relationship": "own" },
-        { "domain": "acme-mail.example", "includeSubdomains": false, "relationship": "service_provider" }
+      "aliases": [
+        "Acme",
+        "Acme Support",
+        "Acme Billing"
       ],
-      "addresses": ["billing@acme.example"]
+      "domains": [
+        {
+          "domain": "acme.example",
+          "includeSubdomains": true,
+          "relationship": "own"
+        },
+        {
+          "domain": "acme-mail.example",
+          "includeSubdomains": false,
+          "relationship": "service_provider"
+        }
+      ],
+      "addresses": [
+        "billing@acme.example"
+      ]
     },
     {
       "kind": "organization",
@@ -24,20 +38,48 @@
       "provenanceUrl": null,
       "notes": "Fictional organization for demos and tests. Uses a reserved .example domain.",
       "lastReviewed": "2026-11-27T00:00:00.000Z",
-      "aliases": ["Globex Corporation", "Globex Payroll"],
-      "domains": [{ "domain": "globex.example", "includeSubdomains": true, "relationship": "own" }],
+      "aliases": [
+        "Globex Corporation",
+        "Globex Payroll"
+      ],
+      "domains": [
+        {
+          "domain": "globex.example",
+          "includeSubdomains": true,
+          "relationship": "own"
+        }
+      ],
       "addresses": []
     },
     {
       "kind": "person",
       "displayName": "Alice Example",
-      "trustState": "unverified",
+      "trustState": "user_trusted",
       "provenanceUrl": null,
-      "notes": "Fictional person for the S/MIME lab (Phase 6).",
+      "notes": "Fictional person for the S/MIME lab.",
       "lastReviewed": null,
-      "aliases": ["Alice"],
+      "aliases": [
+        "Alice"
+      ],
       "domains": [],
-      "addresses": ["alice@acme.example"]
+      "addresses": [
+        "alice@acme.example"
+      ]
+    },
+    {
+      "kind": "person",
+      "displayName": "Bob Example",
+      "trustState": "user_trusted",
+      "provenanceUrl": null,
+      "notes": "Fictional person for the S/MIME lab.",
+      "lastReviewed": null,
+      "aliases": [
+        "Bob"
+      ],
+      "domains": [],
+      "addresses": [
+        "bob@acme.example"
+      ]
     }
   ]
 }

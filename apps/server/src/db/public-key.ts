@@ -17,6 +17,10 @@ export interface PublicMaterial {
   fingerprint: string;
   /** Certificate notAfter, when the material is a certificate. */
   expiresAt: string | null;
+  /** Certificate details for the enrolment preview; null for a bare public key. */
+  subject: string | null;
+  email: string | null;
+  issuer: string | null;
 }
 
 const BLOCK = /-----BEGIN ([A-Z0-9 ]+)-----[\s\S]*?-----END \1-----/g;
@@ -45,6 +49,9 @@ export function readPublicMaterial(pem: string): PublicMaterial {
         keyType: cert.publicKey.asymmetricKeyType ?? 'unknown',
         fingerprint: keyFingerprint(cert.publicKey.export({ type: 'spki', format: 'pem' })),
         expiresAt: new Date(cert.validTo).toISOString(),
+        subject: cert.subject.replace(/\n/g, ', '),
+        email: /email:([^,\s]+)/.exec(cert.subjectAltName ?? '')?.[1] ?? null,
+        issuer: cert.issuer.replace(/\n/g, ', '),
       };
     }
     if (label === 'PUBLIC KEY') {
@@ -54,6 +61,9 @@ export function readPublicMaterial(pem: string): PublicMaterial {
         keyType: key.asymmetricKeyType ?? 'unknown',
         fingerprint: keyFingerprint(block),
         expiresAt: null,
+        subject: null,
+        email: null,
+        issuer: null,
       };
     }
   } catch {

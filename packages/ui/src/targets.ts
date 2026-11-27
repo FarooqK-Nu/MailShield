@@ -16,13 +16,15 @@ export function targetOf(ref: string): Target {
     return { tab: 'identity', anchor: 'inspector-claimed', label: 'Registry entry' };
   }
   if (/^R\d/.test(ref)) return { tab: 'findings', anchor: anchorId(ref), label: ref };
-  const label = ref.startsWith('dkim-')
-    ? `DKIM signature ${ref.slice(5)}`
-    : ref === 'dmarc-local'
-      ? 'DMARC alignment'
-      : ref.startsWith('link-')
-        ? `Link ${ref.slice(5)}`
-        : ref;
+  const label = ref.startsWith('smime-')
+    ? 'Personal signature'
+    : ref.startsWith('dkim-')
+      ? `DKIM signature ${ref.slice(5)}`
+      : ref === 'dmarc-local'
+        ? 'DMARC alignment'
+        : ref.startsWith('link-')
+          ? `Link ${ref.slice(5)}`
+          : ref;
   return { tab: 'evidence', anchor: anchorId(ref), label };
 }
 

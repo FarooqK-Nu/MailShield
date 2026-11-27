@@ -4,10 +4,12 @@ import { createRoot } from 'react-dom/client';
 import { createClient, session } from './api/client.ts';
 import { PairingScreen } from './PairingScreen.tsx';
 import { Analyze } from './routes/Analyze.tsx';
+import { KeyHistory } from './routes/KeyHistory.tsx';
 import { Lab } from './routes/Lab.tsx';
 import { Overview } from './routes/Overview.tsx';
 import { Registry } from './routes/Registry.tsx';
 import { Report } from './routes/Report.tsx';
+import { Settings } from './routes/Settings.tsx';
 import './styles.css';
 import { useTheme } from './theme.ts';
 
@@ -15,7 +17,9 @@ const PAGES = [
   { hash: '#/', label: 'Overview' },
   { hash: '#/analyze', label: 'Analyze' },
   { hash: '#/registry', label: 'Registry' },
+  { hash: '#/keys', label: 'Key history' },
   { hash: '#/lab', label: 'Lab' },
+  { hash: '#/settings', label: 'Settings' },
 ] as const;
 /** Opened by the side panel's "Open full report"; not in the navigation (decision A-14). */
 const REPORT = '#/report';
@@ -78,6 +82,8 @@ function App() {
       <main>
         {client && page === '#/registry' && <Registry client={client} onUnauthorized={forget} />}
         {client && page === '#/' && <Overview />}
+        {client && page === '#/keys' && <KeyHistory client={client} onUnauthorized={forget} />}
+        {client && page === '#/settings' && <Settings client={client} onUnauthorized={forget} />}
         {client && page === '#/lab' && <Lab client={client} onUnauthorized={forget} />}
         {client && page === '#/analyze' && <Analyze client={client} onUnauthorized={forget} />}
         {/* The report needs no pairing: its data comes from the extension, not the service. */}

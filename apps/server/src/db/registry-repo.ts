@@ -14,7 +14,7 @@ import {
   type TrustState,
 } from '@mailshield/contracts';
 import { analyzeDomain, type RegistryPort } from '@mailshield/engine';
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm';
 import type { Db } from './open.ts';
 import { readPublicMaterial } from './public-key.ts';
 import {
@@ -182,6 +182,14 @@ export class RegistryRepo implements RegistryPort {
     });
   }
 
+  /** Display name of the identity this key is enrolled for, if any. */
+  enrolledFor(fingerprint: string): string | null {
+    return (
+      this.list().find((i) => i.keys.some((k) => k.fingerprintSha256 === fingerprint))
+        ?.displayName ?? null
+    );
+  }
+
   addKey(id: string, request: KeyEnrollRequest, actor: string): PublicKeyRecord {
     const parsed = KeyEnrollRequest.parse(request);
     const material = readPublicMaterial(parsed.pem);
@@ -214,7 +222,7 @@ export class RegistryRepo implements RegistryPort {
     return this.db
       .select()
       .from(auditEvents)
-      .where(entityId ? eq(auditEvents.entityId, entityId) : undefined)
+      .where(entityId ? eq(auditEvents.entityId, entityId) : ne(auditEvents.entityType, 'settings'))
       .orderBy(desc(auditEvents.at))
       .limit(limit)
       .all()

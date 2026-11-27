@@ -5,7 +5,11 @@ import {
   EvidenceItem,
   Findings,
   IdentityComparison,
+  PersonalSignatureCard,
   RefLinks,
+  buildRedactedReport,
+  downloadFile,
+  reportToHtml,
   StatusBadge,
   VerdictCard,
   type Target,
@@ -85,7 +89,9 @@ export function ResultPanel({ result }: { result: AnalysisResult }) {
   const simulated = result.inputSource === 'fixture' || result.inputSource === 'lab';
   // Signatures have their own cards; any other record (for example "no DKIM signature") is listed.
   const hasCard = (e: Evidence) => result.signatures.some((s) => s.evidenceId === e.id);
-  const evidence = result.authentication.filter((e) => !hasCard(e) && shown(e, view));
+  const evidence = result.authentication.filter(
+    (e) => !hasCard(e) && e.kind !== 'smime' && shown(e, view),
+  );
   const signatures = view === 'gmail' ? [] : result.signatures;
   const entry = result.candidates[0];
 
@@ -174,6 +180,11 @@ export function ResultPanel({ result }: { result: AnalysisResult }) {
               </details>
             </li>
           ))}
+          {result.personalSignature && view !== 'gmail' && (
+            <li>
+              <PersonalSignatureCard personal={result.personalSignature} />
+            </li>
+          )}
           {evidence.map((e) => (
             <EvidenceItem key={e.id} evidence={e} />
           ))}
@@ -218,8 +229,31 @@ export function ResultPanel({ result }: { result: AnalysisResult }) {
               <ExternalLink aria-hidden className="size-4" /> Open registry entry
             </button>
           )}
-          <button type="button" className="button-quiet" disabled title="Available in Phase 6">
-            <FileDown aria-hidden className="size-4" /> Export redacted report (Phase 6)
+          <button
+            type="button"
+            className="button-quiet"
+            onClick={() =>
+              downloadFile(
+                `mailshield-report-${result.analysisId.slice(0, 8)}.json`,
+                'application/json',
+                JSON.stringify(buildRedactedReport(result), null, 2),
+              )
+            }
+          >
+            <FileDown aria-hidden className="size-4" /> Export redacted report (JSON)
+          </button>
+          <button
+            type="button"
+            className="button-quiet"
+            onClick={() =>
+              downloadFile(
+                `mailshield-report-${result.analysisId.slice(0, 8)}.html`,
+                'text/html',
+                reportToHtml(buildRedactedReport(result)),
+              )
+            }
+          >
+            <FileDown aria-hidden className="size-4" /> Printable report (HTML)
           </button>
         </div>
         {notice && (

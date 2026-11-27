@@ -95,7 +95,7 @@ export const auditEvents = sqliteTable(
     id: text('id').primaryKey(),
     at: text('at').notNull(),
     actor: text('actor').notNull(),
-    entityType: text('entity_type', { enum: ['identity', 'registry'] }).notNull(),
+    entityType: text('entity_type', { enum: ['identity', 'registry', 'settings'] }).notNull(),
     entityId: text('entity_id').notNull(),
     action: text('action', {
       enum: ['create', 'update', 'delete', 'key_added', 'import'],
@@ -105,3 +105,8 @@ export const auditEvents = sqliteTable(
   },
   (t) => [index('audit_event_entity').on(t.entityId)],
 );
+
+export const settings = sqliteTable('setting', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+});

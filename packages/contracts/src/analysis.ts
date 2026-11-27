@@ -74,6 +74,44 @@ export const SignatureEvidence = z.object({
 });
 export type SignatureEvidence = z.infer<typeof SignatureEvidence>;
 
+/**
+ * The S/MIME check (docs/architecture.md §3.7). Each question has its own answer so the UI can
+ * show them separately: a valid signature is not a trusted one, and neither proves the person.
+ */
+export const PersonalSignature = z.object({
+  /** Matches the id of the corresponding `smime` Evidence record. */
+  evidenceId: z.string(),
+  status: EvidenceStatus,
+  reason: z.string(),
+  /** Did the signer's key sign exactly the covered part? Null when it could not be checked. */
+  signatureValid: z.boolean().nullable(),
+  /** Chains to an injected trust anchor. Null when the service has no anchors configured. */
+  chainTrusted: z.boolean().nullable(),
+  /** The certificate names the From address as its email address. */
+  emailBinding: z.boolean().nullable(),
+  /** The certificate allows email protection. */
+  ekuEmailProtection: z.boolean().nullable(),
+  timeValid: z.boolean().nullable(),
+  /** Always `unknown`: no revocation list or OCSP response is consulted (invariant 5). */
+  revocation: z.literal('unknown'),
+  signer: z
+    .object({
+      subject: z.string(),
+      email: z.string().nullable(),
+      issuer: z.string(),
+      notBefore: z.string(),
+      notAfter: z.string(),
+      /** hex(SHA-256(DER SubjectPublicKeyInfo)), the same fingerprint the registry stores. */
+      fingerprint: z.string(),
+    })
+    .nullable(),
+  /** The registry person this key is enrolled for, when it is. */
+  enrolledFor: z.object({ identityId: z.string(), displayName: z.string() }).nullable(),
+  /** What the signature covers and what it leaves open. */
+  coverage: z.string(),
+});
+export type PersonalSignature = z.infer<typeof PersonalSignature>;
+
 export const Mailbox = z.object({
   displayName: z.string(),
   address: z.string(),
@@ -273,6 +311,8 @@ export const AnalysisResult = z.object({
   candidates: z.array(IdentityCandidate),
   authentication: z.array(Evidence),
   signatures: z.array(SignatureEvidence),
+  /** Null when the message has no S/MIME signature. */
+  personalSignature: PersonalSignature.nullable(),
   findings: z.array(Finding),
   links: z.array(LinkEvidence),
   rawHeaders: z.array(HeaderLine),

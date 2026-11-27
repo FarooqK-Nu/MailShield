@@ -10,6 +10,8 @@ import { useState } from 'react';
 import { ApiError, type Client } from '../api/client.ts';
 import { CHALLENGES } from '../features/lab/challenges.ts';
 import { EvidenceTrail } from '../features/lab/EvidenceTrail.tsx';
+import { PersonalLab } from '../features/lab/PersonalLab.tsx';
+import { RULE_NAMES } from '../features/rules.ts';
 
 type Mutation = LabScenario['mutations'][number];
 
@@ -23,17 +25,6 @@ const MUTATIONS: [Mutation, string, string][] = [
   ['dnsMissing', 'DNS key missing', 'The key record is not published.'],
   ['dnsTimeout', 'DNS timeout', 'The key lookup never answers.'],
 ];
-const RULE_NAMES: Record<string, string> = {
-  R1: 'Display-name mismatch',
-  R2: 'Personal mismatch',
-  R3: 'Look-alike domain',
-  R4: 'Misleading structure',
-  R5: 'Reply-To discrepancy',
-  R6: 'Authentication problem',
-  R7: 'Link mismatch',
-  R8: 'First contact (needs key history, Phase 6)',
-  R9: 'Coverage and tampering',
-};
 const AVATARS = [
   ['Blue', 'bg-sky-600'],
   ['Red', 'bg-red-600'],
@@ -481,6 +472,9 @@ export function Lab({ client, onUnauthorized }: Props) {
           Reset the lab
         </button>
       </section>
+
+      <hr className="border-slate-300 dark:border-slate-700" />
+      <PersonalLab client={client} onUnauthorized={onUnauthorized} />
     </div>
   );
 }

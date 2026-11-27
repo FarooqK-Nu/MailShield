@@ -5,17 +5,28 @@ import {
   type IdentityInput,
   type IdentityKind,
 } from '@mailshield/contracts';
-import { Download, ExternalLink, History, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  Download,
+  ExternalLink,
+  History,
+  KeyRound,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError, type Client, type IdentityFilter } from '../api/client.ts';
 import { AuditTrail } from '../features/registry/AuditTrail.tsx';
 import { ConfirmDialog, type Confirmation } from '../features/registry/ConfirmDialog.tsx';
+import { KeyEnrolment } from '../features/registry/KeyEnrolment.tsx';
 import { describeChanges, IdentityForm } from '../features/registry/IdentityForm.tsx';
 import { KindBadge, TRUST_LABELS, TrustBadge } from '../features/registry/badges.tsx';
 
 type Panel =
   | { view: 'none' }
   | { view: 'edit'; identity: Identity | null }
+  | { view: 'enrol'; identity: Identity }
   | { view: 'audit'; identity: Identity | null; events: AuditEvent[] };
 
 function IdentityCard({
@@ -23,11 +34,13 @@ function IdentityCard({
   onEdit,
   onDelete,
   onAudit,
+  onEnrol,
 }: {
   identity: Identity;
   onEdit: () => void;
   onDelete: () => void;
   onAudit: () => void;
+  onEnrol: () => void;
 }) {
   return (
     <article className="rounded-lg border border-slate-300 p-4 dark:border-slate-700">
@@ -107,6 +120,11 @@ function IdentityCard({
         <button type="button" className="inline-flex items-center gap-1" onClick={onEdit}>
           <Pencil aria-hidden className="size-4" /> Edit
         </button>
+        {identity.kind === 'person' && (
+          <button type="button" className="inline-flex items-center gap-1" onClick={onEnrol}>
+            <KeyRound aria-hidden className="size-4" /> Enrol a key
+          </button>
+        )}
         <button type="button" className="inline-flex items-center gap-1" onClick={onAudit}>
           <History aria-hidden className="size-4" /> History
         </button>
@@ -356,6 +374,19 @@ export function Registry({ client, onUnauthorized }: Props) {
           onSubmit={(input) => save(panel.identity, input)}
         />
       )}
+      {panel.view === 'enrol' && (
+        <KeyEnrolment
+          key={panel.identity.id}
+          client={client}
+          identity={panel.identity}
+          onCancel={() => setPanel({ view: 'none' })}
+          onDone={() => {
+            setPanel({ view: 'none' });
+            setNotice(`Key enrolled for ${panel.identity.displayName}.`);
+            load();
+          }}
+        />
+      )}
       {panel.view === 'audit' && (
         <section className="rounded-lg border border-slate-300 p-4 dark:border-slate-700">
           <header className="mb-2 flex items-center justify-between gap-2">
@@ -386,6 +417,7 @@ export function Registry({ client, onUnauthorized }: Props) {
             onEdit={() => setPanel({ view: 'edit', identity })}
             onDelete={() => remove(identity)}
             onAudit={() => void showAudit(identity)}
+            onEnrol={() => setPanel({ view: 'enrol', identity })}
           />
         ))}
       </section>
