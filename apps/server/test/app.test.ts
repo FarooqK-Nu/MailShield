@@ -1,7 +1,13 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { AnalysisResult, MAX_MESSAGE_BYTES, Problem } from '@mailshield/contracts';
+import {
+  AnalysisResult,
+  LAB_DEFAULTS,
+  LabRunResponse,
+  MAX_MESSAGE_BYTES,
+  Problem,
+} from '@mailshield/contracts';
 import { FixtureResolver, loadFixture } from '@mailshield/lab';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -242,6 +248,27 @@ describe('analyze routes', () => {
     expect(result.stages.every((s) => s.simulated)).toBe(true);
     const unknown = await ctx.post('/lab/demo/nope').set('Authorization', `Bearer ${auth}`);
     expect(unknown.status).toBe(404);
+  });
+
+  it('runs lab scenarios on fixture DNS only and rejects anything outside the lists', async () => {
+    const auth = await ready();
+    const run = (body: unknown) =>
+      ctx
+        .post('/lab/run')
+        .set('Authorization', `Bearer ${auth}`)
+        .send(body as object);
+    const asked = ctx.resolver.queries.length;
+    const ok = await run(LAB_DEFAULTS.legitimate);
+    expect(ok.status).toBe(200);
+    const parsed = LabRunResponse.parse(ok.body);
+    expect(parsed.result.inputSource).toBe('lab');
+    expect(parsed.result.signatures[0]).toMatchObject({ status: 'pass', source: 'lab' });
+    // The live resolver given to the app was never asked: the lab brings its own zone.
+    expect(ctx.resolver.queries).toHaveLength(asked);
+
+    expect((await run({ ...LAB_DEFAULTS.legitimate, mutations: ['nope'] })).status).toBe(400);
+    expect((await run({ ...LAB_DEFAULTS.legitimate, extra: 1 })).status).toBe(400);
+    expect((await ctx.post('/lab/run').send(LAB_DEFAULTS.legitimate)).status).toBe(401);
   });
 });
 

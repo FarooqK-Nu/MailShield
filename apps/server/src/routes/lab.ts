@@ -1,6 +1,13 @@
+import { LabScenario } from '@mailshield/contracts';
 import { analyze } from '@mailshield/engine';
-import { fixtureRegistry, FixtureResolver, listFixtures, loadFixture } from '@mailshield/lab';
-import { Router, type RequestHandler } from 'express';
+import {
+  fixtureRegistry,
+  FixtureResolver,
+  listFixtures,
+  loadFixture,
+  runScenario,
+} from '@mailshield/lab';
+import express, { Router, type RequestHandler } from 'express';
 import { sendProblem } from '../middleware/errors.ts';
 
 /**
@@ -32,6 +39,19 @@ export function labRoutes(guards: RequestHandler[]): Router {
       ),
     );
   });
+
+  // Scenario fields are validated against fixed lists and patterns; nothing is stored and the
+  // only DNS the engine can reach is the in-memory fixture zone.
+  router.post(
+    '/lab/run',
+    ...guards,
+    express.json({ limit: '16kb', inflate: false }),
+    async (req, res) => {
+      const scenario = LabScenario.safeParse(req.body);
+      if (!scenario.success) return sendProblem(res, 'invalid_request');
+      res.json(await runScenario(scenario.data));
+    },
+  );
 
   return router;
 }
