@@ -314,7 +314,13 @@ export async function analyze(input: AnalysisInput, deps: EngineDeps): Promise<A
     const ran = runRules(ctx);
     const count = (severity: string) => ran.findings.filter((f) => f.severity === severity).length;
     return {
-      status: count('high') ? 'fail' : count('caution') ? 'warn' : 'pass',
+      status: !ran.evaluated.length
+        ? 'not_evaluated'
+        : count('high')
+          ? 'fail'
+          : count('caution')
+            ? 'warn'
+            : 'pass',
       inputs: { configVersion: ctx.config.version, links: links.length },
       outputs: {
         evaluated: ran.evaluated,

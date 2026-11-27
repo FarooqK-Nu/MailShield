@@ -5,6 +5,7 @@ import {
   Identity,
   IdentityList,
   ImportResult,
+  LabRunResponse,
   PairResponse,
   Problem,
   PublicKeyRecord,
@@ -13,6 +14,7 @@ import {
   type IdentityKind,
   type IdentityPatch,
   type KeyEnrollRequest,
+  type LabScenario,
   type TrustState,
 } from '@mailshield/contracts';
 import { z } from 'zod';
@@ -116,6 +118,8 @@ export function createClient(token: string) {
         headers: { ...auth, 'Content-Type': 'text/plain' },
         body: text,
       }),
+    runLab: (scenario: LabScenario) =>
+      request(LabRunResponse, '/lab/run', sendJson('POST', scenario)),
     fixtures: () => request(FixtureList, '/fixtures', { headers: auth }),
     runDemo: (id: string) =>
       request(AnalysisResult, `/lab/demo/${encodeURIComponent(id)}`, {

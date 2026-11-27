@@ -18,6 +18,8 @@ const resolver = new LiveResolver({
   timeoutMs: config.dnsTimeoutMs,
   servers: config.dnsServers,
 });
+// Runtime check for invariant 7: live analysis must never run on fixture DNS.
+if (!(resolver instanceof LiveResolver)) throw new Error('Live analysis needs the live resolver.');
 void dnsWarning(resolver).then((warning) => warning && console.warn(warning));
 
 const registry = new RegistryRepo(openDatabase(config.dbPath));

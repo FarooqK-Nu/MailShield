@@ -203,3 +203,91 @@ The extension is a working MV3 side panel rather than the Phase 0 spike. It pair
 ### 11. Next phase
 
 Phase 5, the security laboratory: lab keys and selectors, real signing and mutations in `packages/lab`, `POST /lab/run`, the animated evidence trail, before/after mode and offline operation. Carried forward: run the Phase 4 live checklist; extension E2E in Phase 7; and, on this Windows machine, run installs and tests from `D:\` in PowerShell.
+
+## Phase 5: Interactive security laboratory
+
+**Report date:** 2026-11-27 · **Branch:** `phase-5-security-lab` · **Commits:** `ef49132`..`cac9ae6`, plus the documentation commit that adds this section
+
+### 1. Phase objective
+
+Build the semester demonstration centrepiece: an offline laboratory in which a user builds a synthetic message, has it really signed, tampers with it, and watches the real analysis engine react. The plan is `docs/masterroadmap_plan.md` (Phase 5); `docs/phase-5-plan.md` fixes the implementation shape. The user asked for a deliberately small implementation.
+
+### 2. Work completed
+
+Status: **completed**, with the browser checks described in section 7.
+
+- Three new committed TEST-ONLY RSA keys: Acme selector `s2025`, Acme selector `s2026` and Eve.
+- `runScenario` in `packages/lab`: builds the message, signs it with DKIM (DomainKeys Identified Mail, the signature scheme that proves a domain signed a message), applies mutations to the real bytes, builds the fixture DNS zone and runs the real engine.
+- Eight mutations: edit one body character, change the signed Subject, change Reply-To after signing (not covered by the signature), remove the signature, swap the key, rotate the selector, DNS key missing, DNS timeout.
+- Protection toggles: each rule R1 to R9 can be switched off (R8 stays off until Phase 6).
+- `POST /api/v1/lab/run` with strict validation.
+- A startup check in the service and tests for the live/lab separation.
+- A dashboard page `#/lab`: scenario builder with avatar and side-by-side preview, tamper controls, protection toggles, animated evidence trail, before/after panel, hash and key panel, four guided challenges, downloadable synthetic JSON report and reset.
+
+### 3. Implementation details
+
+- `fixtures/keys/TEST-ONLY-lab-acme-s2025.pem`, `...-s2026.pem`, `...-eve.pem` (new).
+- `packages/contracts/src/lab.ts` (new): `LabScenario`, `LabRunResponse`, `LAB_DEFAULTS` and the allowed lists. Header fields reject line breaks, quotes and angle brackets, so a field cannot inject a header; addresses must match a strict pattern.
+- `packages/lab/src/scenario.ts` (new): see section 5.
+- `packages/engine/src/pipeline.ts`: the `rules` stage reports `not_evaluated` when no rule ran (previously `pass`).
+- `apps/server/src/routes/lab.ts`: the new route (16 KB JSON limit, the same token and rate-limit guards as other routes). `apps/server/src/server.ts`: refuses to start unless the live resolver is a `LiveResolver`.
+- `apps/web/src/routes/Lab.tsx`, `features/lab/EvidenceTrail.tsx`, `features/lab/challenges.ts` (new); `main.tsx` and `api/client.ts` (navigation entry and `runLab`).
+- Tests: `packages/lab/test/scenario.test.ts`, `apps/web/test/challenges.test.ts`, and a new case in `apps/server/test/app.test.ts`.
+- Documentation: `docs/phase-5-plan.md`, decision A-16, a threat-model row update and ticked Phase 5 exit criteria in the roadmap.
+
+### 4. Architecture and design decisions
+
+- **Committed keys.** Node cannot create RSA keys deterministically, and the lab must give identical output every run. Committed TEST-ONLY keys (the Phase 1 pattern) solve this at no risk, because they guard nothing.
+- **Mutations act on real bytes after signing**, the way an attacker in transit would, so the verdicts come from genuine cryptography rather than scripted outcomes.
+- **Eve owns a look-alike domain.** `acrne.example` ("rn" instead of "m") publishes her key and a `p=none` DMARC policy, so her message authenticates honestly, which is the point of the look-alike demonstration.
+- **Alternatives rejected** (decision A-16): a server-side lab session object (nothing needs to persist), a second engine run for "before" (the DKIM and DMARC evidence of one run does not depend on the rules) and server-pushed events (the client animates the stage list it already has).
+- No deviation from the roadmap's exit criteria or table was made.
+
+### 5. Technical details
+
+- Fixed clock: signing at 10:00 UTC and analysis at 12:00 UTC on 2026-06-01, so results never depend on the current date.
+- Signing covers From, To, Subject and Date. Reply-To is deliberately unsigned.
+- `swapKey` signs with the other party's key while keeping the claimed `d=` and `s=`, which fails at the header-signature stage. `rotateSelector` signs with the other published Acme selector, so DKIM passes with a different key fingerprint and the same body hash.
+- Each run performs two engine runs: the mutated message and an unmutated baseline. The page compares their body hashes and key fingerprints character by character. The body hash and the key fingerprint are shown separately because they answer different questions.
+- Evidence trail: plays, pauses, steps, resets and changes speed over `result.stages`. Hovering or focusing a revealed stage shows its inputs, outputs and limits. Every stage carries a "simulated" badge.
+- The DNS resolver is always a `FixtureResolver`; the registry is always the fictional seed registry (A-10). Mutated messages never leave memory.
+
+### 6. Dependencies
+
+None added, removed or updated. `npm audit` reports 0 vulnerabilities.
+
+### 7. Testing and verification
+
+| Check | Result |
+|---|---|
+| `npx vitest run` from `D:\` | 25 files, 316 tests pass (18 new) |
+| Exit criterion 1 (one body character) | Test passes: DKIM `fail` at `body_hash`, computed body hash differs, expected hash unchanged |
+| Exit criterion 2 (unsigned header) | Test passes: DKIM stays `pass`, `reply-to` appears in the unsigned headers, rule R5 fires |
+| Exit criterion 3 (before/after) | Test passes: look-alike has DKIM and DMARC `pass`, R1 and R3 fire with rules on; with all rules off no finding and the `rules` stage is `not_evaluated` |
+| Exit criterion 4 (offline) | Test passes with the system DNS resolver stubbed to throw; it is never called |
+| Route test | Valid scenario returns 200 with source `lab`; unknown mutation, extra field and missing token are rejected; the live resolver receives no queries |
+| `npm run typecheck`, `npx eslint .`, `npm run build` | Pass |
+| Browser check (temporary Playwright script, not committed) | The real service and dashboard on spare ports: pairing, running a scenario, ticking a mutation and re-running worked; the first challenge was marked solved; no console errors. A screenshot was inspected by eye |
+
+Not verified: the animation timing and the downloaded report file were not exercised by an automated test; light-theme appearance and narrow-screen layout were not inspected.
+
+### 8. Problems and solutions
+
+- A failed signature reports no key, so the key fingerprint cell was empty. The page now explains that verification stopped before the key was used, and the test asserts the baseline fingerprint instead.
+- The developer's own service and dashboard already occupied ports 8787 and 5173. The browser check used a separate service and a temporary Vite configuration on other ports, both removed afterwards.
+
+### 9. Outstanding issues
+
+- No committed browser (Playwright) test for the lab page; the page logic is covered through the server and challenge tests only (Phase 7).
+- The lab covers DKIM and DMARC only. Personal (S/MIME) signatures and the lab certificate authority come in Phase 6.
+- The lab message is plain text, so the link-mismatch rule R7 cannot be demonstrated in the lab.
+- The dashboard bundle is 549 KB (a build-tool size warning).
+- Extension E2E remains Phase 7.
+
+### 10. Phase outcome
+
+The lab is working end to end and meets all four exit criteria in tests. A user can build a message, tamper with it, switch protections off, replay the real pipeline events and compare hashes and verdicts, entirely offline.
+
+### 11. Next phase
+
+Phase 6: personal signatures and key history (S/MIME with the lab certificate authority, key enrolment, key history, redacted report export, settings page). Carried forward: R8 is still disabled, the "Export redacted report" action remains disabled, and on this Windows machine tests must run from `D:\` in PowerShell.
