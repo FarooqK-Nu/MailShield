@@ -71,7 +71,7 @@ Build the daily-use experience inside Gmail (roadmap Phase 4): a Chrome MV3 side
 |---|---|
 | Live receiver-result trust strategy with tests (A) | **Completed.** Tested on synthetic Gmail-shaped fixtures and, locally, on one real downloaded Gmail message. |
 | Invariant test: `gmail_api` is the only path to `trusted_receiver` (A) | **Completed.** |
-| Review of extension permissions and data flow against the threat model (A) | **Completed.** Five threat rows added; two accepted limitations recorded. |
+| Review of extension permissions and data flow against the threat model (A) | **Completed.** Four threat rows added, two updated, and two accepted limitations recorded. |
 | MV3 manifest with minimal permissions; service worker with OAuth, metadata then raw fetch, base64url decoding, POST to the service (B) | **Completed.** Verified by unit tests and a Chromium smoke test; the Google sign-in path is **unverified** (needs the test account). |
 | Read-only content script that sends a selection hint (B) | **Completed.** Tested against a fake DOM; real Gmail markup is **unverified** in this phase. |
 | Side panel: connect/disconnect, consent text, confirmation, Analyze/Reanalyze, progress, verdict, identity and authentication cards, findings, quick actions (B) | **Completed.** Rendering and the `.eml` path verified in Chromium; Gmail-specific paths **unverified** live. |
@@ -164,7 +164,7 @@ no Google header: untrusted
 | Lint | `npm run lint` | Pass |
 | Unit and integration tests | `npx vitest run` from `D:\` (see §8) | 23 files, 298 tests pass (39 new extension tests and 14 new engine tests, one of which runs only where `private/` exists) |
 | Real Gmail message (local only) | `receiver-trust.test.ts`, `private/` case | Pass: exactly one trusted result (Google's topmost), none when the same bytes are uploaded |
-| Build | `npm run build` | Pass. The content script is about 1.7 KB, with no Zod |
+| Build | `npm run build` | Pass. The content script is about 2 KB in total, with no Zod |
 | Playwright | `npx playwright test` | 1 pass (preview network assertion) |
 | Dependency audit | `npm audit` | 0 vulnerabilities |
 | Chromium smoke test (not committed) | Playwright with the unpacked extension, the real service on a temporary data directory, and the dashboard dev server | Pass: service worker loads; pairing with a real code; `.eml` analyzed through the worker; verdict, findings and stages render; "Open full report" shows the same verdict in the dashboard; `#/report` without an opener refuses |
