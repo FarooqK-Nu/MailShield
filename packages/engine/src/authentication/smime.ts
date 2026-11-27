@@ -23,8 +23,11 @@ export type Detected =
   | { kind: 'detached'; part: SignedPart }
   | { kind: 'malformed'; reason: string };
 
-const param = (value: string, name: string) =>
-  new RegExp(`${name}\s*=\s*(?:"([^"]+)"|([^\s;]+))`, 'i').exec(value)?.slice(1).find(Boolean);
+/** Reads one parameter (quoted or bare) from a header value such as a Content-Type. */
+const param = (value: string, name: string) => {
+  const match = new RegExp(String.raw`${name}\s*=\s*(?:"([^"]+)"|([^\s;]+))`, 'i').exec(value);
+  return match?.[1] ?? match?.[2];
+};
 
 /**
  * Finds a `multipart/signed` pkcs7 message and cuts out the two parts by byte offset from the

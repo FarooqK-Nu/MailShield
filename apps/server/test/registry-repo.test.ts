@@ -150,7 +150,7 @@ describe('fictional seed registry', () => {
       ),
     );
     const r = repo();
-    expect(r.importFile(RegistryFile.parse(file), 'seed').imported).toBe(3);
+    expect(r.importFile(RegistryFile.parse(file), 'seed').imported).toBe(4);
     const domains = r
       .list()
       .flatMap((i) => [

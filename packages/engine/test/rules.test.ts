@@ -1,4 +1,10 @@
-import type { Evidence, Identity, Mailbox, SignatureEvidence } from '@mailshield/contracts';
+import type {
+  Evidence,
+  Identity,
+  KeyObservation,
+  Mailbox,
+  SignatureEvidence,
+} from '@mailshield/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   decideVerdict,
@@ -95,6 +101,7 @@ interface Options {
   identities?: Identity[];
   html?: string;
   extraEvidence?: Evidence[];
+  history?: KeyObservation[];
 }
 
 function context(o: Options = {}): RuleContext {
@@ -134,6 +141,7 @@ function context(o: Options = {}): RuleContext {
     links: o.html ? extractLinks(o.html) : [],
     headerOnly: false,
     config: DEFAULT_RULE_CONFIG,
+    history: o.history,
   };
 }
 
@@ -321,5 +329,51 @@ describe('links', () => {
       hrefHost: null,
       textHost: null,
     });
+  });
+});
+
+const key = (selector = 's1', fingerprint = 'aa'.repeat(32)) =>
+  signature('acme.example', 'pass', {
+    selector,
+    key: { type: 'rsa', bits: 2048, fingerprint, testing: false },
+  });
+const seen = (
+  selector: string,
+  fingerprint: string,
+  status: KeyObservation['status'] = 'current',
+): KeyObservation => ({
+  id: `${selector}-${fingerprint.slice(0, 2)}`,
+  domain: 'acme.example',
+  selector,
+  fingerprint,
+  firstSeen: AT,
+  lastSeen: AT,
+  status,
+});
+const r8 = (history: KeyObservation[] | undefined, signature = key()) =>
+  evaluate({ signatures: [signature], history }).findings.filter((f) => f.ruleId === 'R8');
+
+describe('R8 key history', () => {
+  it('is not evaluated when history is off', () => {
+    expect(evaluate({ signatures: [key()] }).notEvaluated).toContain('R8');
+  });
+
+  it('reports first contact for an unknown domain, as info', () => {
+    const [f] = r8([]);
+    expect(f).toMatchObject({ id: 'R8:first_contact:1', severity: 'info' });
+  });
+
+  it('is silent for a known key', () => {
+    expect(r8([seen('s1', 'aa'.repeat(32))])).toEqual([]);
+  });
+
+  it('reports a new selector as rotation, and a changed key as an unexpected change', () => {
+    expect(r8([seen('s0', 'bb'.repeat(32))]).map((f) => f.id)).toEqual(['R8:rotation:1']);
+    expect(r8([seen('s1', 'bb'.repeat(32))]).map((f) => f.id)).toEqual(['R8:unexpected_change:1']);
+  });
+
+  it('raises a caution when the key was marked revoked', () => {
+    const [f] = r8([seen('s1', 'aa'.repeat(32), 'revoked')]);
+    expect(f).toMatchObject({ id: 'R8:revoked:1', severity: 'caution' });
   });
 });
