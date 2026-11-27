@@ -1,0 +1,4 @@
+{
+  "s1._domainkey.globex.example": "TIMEOUT",
+  "_dmarc.globex.example": "v=DMARC1; p=reject"
+}

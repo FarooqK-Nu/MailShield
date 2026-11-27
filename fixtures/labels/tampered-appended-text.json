@@ -1,0 +1,24 @@
+{
+  "id": "tampered-appended-text",
+  "title": "Text appended after signing",
+  "description": "A payment request was added at the end.",
+  "category": "tampered",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/tampered-appended-text.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "authentication_concern",
+    "signatures": [
+      {
+        "status": "fail",
+        "failureStage": "body_hash"
+      }
+    ],
+    "rules": [
+      "R6",
+      "R9"
+    ]
+  }
+}

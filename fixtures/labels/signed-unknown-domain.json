@@ -1,0 +1,21 @@
+{
+  "id": "signed-unknown-domain",
+  "title": "Valid signature from an unregistered domain",
+  "description": "The signature is valid but nothing is known about unknown-shop.example.",
+  "category": "ambiguous",
+  "split": "heldout",
+  "truth": "unknown",
+  "dns": "eval.json",
+  "eml": "heldout/signed-unknown-domain.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

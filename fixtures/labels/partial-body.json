@@ -3,6 +3,9 @@
   "title": "Signature covers part of the body",
   "description": "Signed with l=20; text was added after the signed length.",
   "dns": "acme.json",
+  "category": "edge",
+  "truth": "legitimate",
+  "split": "dev",
   "eml": "dev/partial-body.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

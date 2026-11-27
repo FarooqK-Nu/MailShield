@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=C8OyF9Otsdioo5AX++ZQPD06dY+WJYlZX5gFDblyqDSFT2D1//dVsf8N6qoJ1tOcjCLswxH6m
+ WzU9NrzXN6MCabjseRGAM157GHQVeUxh0tdg1+kMa10j5sxpTdKTwaPKKM2ybk3nGooq4kYGhUZ
+ NKiGIWouETleiLSJKMc9b/YBA6hlmV+O3iB7Vc4o+HSp5ZlPc4PKaTDSGrjlygMasayMA89ukK9
+ t/dyp7VO/8XFnK9u+iFsWwa1F42F5zDSBSv9E+nj7aNY9cfBKH8lJZBT7Iqmamlr4BhlSUmxoUb
+ Q/2NQMzH15C8N7MwQBjybjhVJhSHCnDu15xATG5uWa+w==
+From: Acme Billing <billing@acme.example>
+To: alice@example.org
+Subject: Receipt 4821
+Message-ID: <1410372694@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

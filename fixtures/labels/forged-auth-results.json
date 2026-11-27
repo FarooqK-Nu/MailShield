@@ -1,0 +1,18 @@
+{
+  "id": "forged-auth-results",
+  "title": "Unsigned Acme message with a forged result header",
+  "description": "The message carries “Authentication-Results: dkim=pass” that the sender typed (invariant 3).",
+  "category": "impersonation",
+  "split": "heldout",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "heldout/forged-auth-results.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [],
+    "rules": [
+      "R6"
+    ]
+  }
+}

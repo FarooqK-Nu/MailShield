@@ -298,12 +298,30 @@ const fixtures: {
   },
 ];
 
+/** Ground truth is set by construction (what the message really is), never from engine output. */
+const META: Record<string, { category: string; truth: string }> = {
+  'legit-signed': { category: 'legitimate', truth: 'legitimate' },
+  'multi-signature': { category: 'legitimate', truth: 'legitimate' },
+  'partial-body': { category: 'edge', truth: 'legitimate' },
+  'outsourced-sender': { category: 'edge', truth: 'legitimate' },
+  'body-tampered': { category: 'tampered', truth: 'suspicious' },
+  'lookalike-authenticated': { category: 'impersonation', truth: 'suspicious' },
+  'brand-dmarc-unaligned': { category: 'impersonation', truth: 'suspicious' },
+  'reply-to-divergence': { category: 'impersonation', truth: 'suspicious' },
+  'link-mismatch': { category: 'impersonation', truth: 'suspicious' },
+  unsigned: { category: 'ambiguous', truth: 'unknown' },
+  'missing-dns-key': { category: 'ambiguous', truth: 'unknown' },
+  'dns-timeout': { category: 'ambiguous', truth: 'unknown' },
+};
+
 for (const { raw, signatures, verdict, rules, ...fixture } of fixtures) {
   writeFileSync(path(`eml/dev/${fixture.id}.eml`), raw);
   writeFileSync(
     path(`labels/${fixture.id}.json`),
     json({
       ...fixture,
+      ...META[fixture.id],
+      split: 'dev',
       eml: `dev/${fixture.id}.eml`,
       now: NOW,
       expected: { verdict, signatures, rules },

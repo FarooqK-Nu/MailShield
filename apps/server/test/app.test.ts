@@ -245,7 +245,7 @@ describe('analyze routes', () => {
       .get('/api/v1/fixtures')
       .set('Host', HOST)
       .set('Authorization', `Bearer ${auth}`);
-    expect(list.body.fixtures).toHaveLength(12);
+    expect(list.body.fixtures.length).toBeGreaterThanOrEqual(40);
     const res = await ctx.post('/lab/demo/legit-signed').set('Authorization', `Bearer ${auth}`);
     const result = AnalysisResult.parse(res.body);
     expect(result.inputSource).toBe('fixture');

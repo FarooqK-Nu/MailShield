@@ -3,6 +3,9 @@
   "title": "DNS does not answer",
   "description": "A signed message checked while the DNS key lookup times out.",
   "dns": "acme-timeout.json",
+  "category": "ambiguous",
+  "truth": "unknown",
+  "split": "dev",
   "eml": "dev/dns-timeout.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

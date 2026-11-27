@@ -1,0 +1,4 @@
+{
+  "s1._domainkey.acme.example": "v=DKIM1; k=rsa; p=%%%not-a-key%%%",
+  "_dmarc.acme.example": "v=DMARC1; p=reject"
+}

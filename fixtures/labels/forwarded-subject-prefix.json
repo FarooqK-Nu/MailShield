@@ -1,0 +1,24 @@
+{
+  "id": "forwarded-subject-prefix",
+  "title": "Mailing list prefixes the Subject",
+  "description": "A real Acme message forwarded by a list that added “[staff]” to the Subject.",
+  "category": "edge",
+  "split": "dev",
+  "truth": "unknown",
+  "dns": "eval.json",
+  "eml": "dev/forwarded-subject-prefix.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "authentication_concern",
+    "signatures": [
+      {
+        "status": "fail",
+        "failureStage": "header_signature"
+      }
+    ],
+    "rules": [
+      "R6",
+      "R9"
+    ]
+  }
+}

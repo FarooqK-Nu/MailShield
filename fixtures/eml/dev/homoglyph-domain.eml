@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=xn--cme-5cd.example; h=Date: Subject: To: From; q=dns/txt; s=s1;
+ t=1780308000; bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=K+cPFUpMvAkOvQo6rys65rlMwFCLTDqpEXotOTQx6XbiC+WEA2XZpYgE8tjvi1zU95MwlbEtZ
+ w/J0QCR7uqpzlJEaLVjrY6IVW7ti3zKoGxJBq/SqbvKS4f8u4MBg+vw39n94otU6Q3hC078elcO
+ pJHeP3xjrOIyYSHjM74xACUp6o0c2TZi86Yg8JE4dQZuWsACrWeTTz3zFicgJH+8gE5l8RM4tjH
+ gCtbQCTIPmzJ6+ltbZEUaPrkUqDDXS1L631Ge7OlNsje248YH36fvy2uGN/eKRTeEJkxhfd9a/r
+ UE6pl1n6r8LGOPONz48rWID9ASA+J3FKPEuddPDZMkrg==
+From: Acme Support <support@аcme.example>
+To: alice@example.org
+Subject: Confirm your account
+Message-ID: <144185242@аcme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

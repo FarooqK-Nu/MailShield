@@ -1,0 +1,23 @@
+{
+  "id": "globex-link-mismatch",
+  "title": "Globex link shows one site, opens another",
+  "description": "The visible link is globex.example but the target is globex-hr.example.",
+  "category": "impersonation",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/globex-link-mismatch.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R7"
+    ]
+  }
+}

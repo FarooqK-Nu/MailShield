@@ -4,3 +4,4 @@ export * from './api.ts';
 export * from './registry.ts';
 export * from './lab.ts';
 export * from './history.ts';
+export * from './evaluation.ts';

@@ -1,0 +1,24 @@
+{
+  "id": "tampered-signature-value",
+  "title": "Signature value corrupted",
+  "description": "Characters of b= were altered.",
+  "category": "tampered",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/tampered-signature-value.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "authentication_concern",
+    "signatures": [
+      {
+        "status": "fail",
+        "failureStage": "header_signature"
+      }
+    ],
+    "rules": [
+      "R6",
+      "R9"
+    ]
+  }
+}

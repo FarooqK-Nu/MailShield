@@ -373,3 +373,86 @@ All four roadmap exit criteria pass in tests. A user can enrol a person's key, s
 ### 11. Next phase
 
 Phase 7: evaluation (40 or more labelled fixtures, dev and held-out split), hardening, documentation and delivery. Carried forward: tests must run from `D:\` in PowerShell; extension and new-page browser tests; the R8 revoked-severity decision.
+
+---
+
+## Phase 7: Evaluation, hardening and delivery
+
+Branch `phase-7-evaluation-hardening`. Plan: [`phase-7-plan.md`](phase-7-plan.md). Results: [`test-report.md`](test-report.md).
+
+### 1. Phase objective
+
+Show that the analysis works and is safe, and prepare the project for delivery: at least 40 labelled fixtures with a development and a held-out set, an evaluation runner and page, hardening (fuzzing, dependency audit, permission, copy and accessibility review) and the delivery documents.
+
+### 2. Work completed (completed and tested unless marked)
+
+- 32 new synthetic fixtures added to the existing 12 (44 in total): 10 legitimate, 12 impersonation, 8 tampered, 8 ambiguous, 6 edge cases. 28 are development and 16 held-out. Completed.
+- Label schema extended with `category`, `split` and `truth`. Completed.
+- Evaluation module, runner (`tools/evaluate.ts`) and committed results for the three splits. Completed.
+- `GET /api/v1/evaluation/:split` and the dashboard Evaluation page. Route completed and tested; the page is type-checked and built but **not exercised in a browser** (unverified).
+- Hardening: seeded parser fuzz test, user-facing copy test, `npm audit` in CI, accessibility fixes. Completed.
+- Delivery documents: README, `docs/api.md`, `docs/test-report.md`, `docs/demo.md`, threat model refresh, roadmap exit criteria ticked. Completed.
+- **Not done:** extension end-to-end test with a mocked Gmail API (decision A-12), demo recording, slides, viva rehearsal.
+
+### 3. Implementation details
+
+- `tools/gen-eval-fixtures.ts` (new): builds the 32 fixtures with committed TEST-ONLY keys (new: `acme-s2`, `globex-s1`), writes `fixtures/eml/{dev,heldout}/`, three DNS zones (`eval.json`, `globex-timeout.json`, `acme-bad-key.json`) and the labels. `tools/gen-fixtures.ts` now writes the three new label fields for the original 12.
+- `packages/lab/src/fixtures.ts`: schema fields. `packages/contracts/src/evaluation.ts`: `EvaluationReport` schema. `packages/lab/src/evaluation.ts`: `evaluate()` and `loadEvaluation()`.
+- `tools/evaluate.ts`: writes `fixtures/evaluation/{dev,heldout,all}.json`.
+- `apps/server/src/routes/lab.ts`: the evaluation route (allowlisted split names; serves the file unchanged). `apps/web/src/routes/Evaluation.tsx`, `main.tsx`, `api/client.ts`: the page.
+- Tests: `packages/lab/test/evaluation.test.ts`, `packages/engine/test/fuzz.test.ts`, `packages/ui/test/copy.test.ts`, `apps/server/test/phase7.test.ts`; `pipeline.test.ts` and `app.test.ts` adjusted for the larger set, and `pipeline.test.ts` now checks `verdictBasis` for every fixture.
+- Accessibility: `EvidenceTrail.tsx` shows all stages at once under reduced motion; two spinners now use `motion-safe:`.
+- `.github/workflows/ci.yml`: `npm audit --audit-level=high`.
+
+### 4. Architecture and design decisions
+
+- **Ground truth separate from regression snapshot.** `truth` is set by construction. `expected` is recorded from the engine so ordinary tests catch change. If both came from the engine, the evaluation could never disagree with itself. Alternative considered: one field; rejected for that reason.
+- **Evaluation logic in `packages/lab`, not in the tool or the page.** The tool is a thin writer, the page a viewer, and one test proves the committed JSON equals a fresh run (no stale numbers).
+- **Abstention is never rewarded.** Recall counts an abstention on a suspicious message as a miss; ambiguous messages have their own abstention rate.
+- **No tuning.** The rules were not changed in this phase, so the held-out set was not used to adjust anything. The honest result (about 70% recall, 0 false positives) is reported as it is.
+- **No new dependencies for fuzzing.** A seeded generator keeps failures reproducible and avoids a library for a semester project.
+
+### 5. Technical details
+
+Outcome mapping: possible impersonation and authentication concern are "flagged", no concerning mismatch is "cleared", identity unverified is "abstained". Precision = flagged suspicious / all flagged among legitimate and suspicious; recall = flagged suspicious / all suspicious; F1 is their harmonic mean. Unknown-truth messages are excluded from these and reported as an abstention rate plus counts of flagged and cleared.
+
+### 6. Dependencies
+
+None added or removed. `npm audit`: 0 vulnerabilities.
+
+### 7. Testing and verification
+
+| Check | Result |
+|---|---|
+| `npx vitest run` from `D:\` | 33 files, 400 tests pass (52 new) |
+| `npm run typecheck`, `npx eslint .` | pass |
+| Evaluation, development set (28) | precision 100% (9/9), recall 69.2% (9/13), F1 0.818 |
+| Evaluation, held-out set (16, run once) | precision 100% (5/5), recall 71.4% (5/7), F1 0.833 |
+| Abstention on ambiguous cases | 71.4% (5/7) development, 80.0% (4/5) held-out |
+| False positives, suspicious cleared | none, none |
+| Fuzz test | all inputs end in a result or `AnalysisError` within seconds |
+| Copy test | no banned wording in `apps/web`, `apps/extension`, `packages/ui` source |
+
+Not verified: the Evaluation page and the reduced-motion changes in a browser (the developer's own servers were already running on ports 8787 and 5173 and were left alone); contrast ratios; the GitHub Actions run itself; live Gmail.
+
+### 8. Problems and solutions
+
+- Large shell heredocs failed in this environment; files were written with the editor tool instead.
+- The first copy test flagged the Tailwind class `motion-safe`; the pattern now ignores hyphenated class names.
+- The evaluation tests exceeded the default 5 second timeout because 44 messages are verified with RSA; the report is computed once per file and the timeout raised.
+
+### 9. Outstanding issues
+
+- The engine abstains on single-signal findings (Reply-To divergence, link mismatch, forged result header, unaligned third-party signature) even when the message is suspicious, which is why recall is about 70%. This is a design choice (no accusation from one heuristic), not a defect, but it is the main limit.
+- Mailing-list changes and shared personal names raise a concern on legitimate mail (3 fixtures).
+- Fixtures were written by the same people as the rules; small sample; no real messages.
+- **Extension end-to-end test (A-12) is not done.** Proposal: keep the Vitest coverage and record this as a limitation, because `chrome.identity` OAuth cannot be driven in automated Chrome. This needs the user's decision before it is added to `decisions.md`.
+- Demo recording, slides and viva rehearsal remain human tasks.
+
+### 10. Phase outcome
+
+The three Phase 7 roadmap exit criteria are met (critical fixtures pass locally and in the CI definition, dashboard and lab work without Gmail, unimplemented features are listed in the README). The project has an evaluation corpus, a reproducible evaluation with honest limits, a fuzz test, and the delivery documents.
+
+### 11. Next phase
+
+Phase 8 (stretch) is optional and not started. Before any further work: decide the A-12 extension end-to-end item, open the Evaluation page in a browser, and push the branch to see the CI run.

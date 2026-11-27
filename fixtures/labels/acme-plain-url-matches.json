@@ -1,0 +1,21 @@
+{
+  "id": "acme-plain-url-matches",
+  "title": "Plain text with an Acme link",
+  "description": "A valid Acme message that mentions https://acme.example/help.",
+  "category": "legitimate",
+  "split": "dev",
+  "truth": "legitimate",
+  "dns": "eval.json",
+  "eml": "dev/acme-plain-url-matches.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

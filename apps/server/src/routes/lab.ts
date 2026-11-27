@@ -4,6 +4,7 @@ import {
   fixtureRegistry,
   FixtureResolver,
   listFixtures,
+  loadEvaluation,
   loadFixture,
   runPersonalScenario,
   runScenario,
@@ -22,6 +23,16 @@ export function labRoutes(guards: RequestHandler[]): Router {
     res.json({
       fixtures: listFixtures().map(({ id, title, description }) => ({ id, title, description })),
     });
+  });
+
+  // Serves the file written by tools/evaluate.ts unchanged; nothing is computed here.
+  router.get('/evaluation/:split', ...guards, (req, res) => {
+    const split = String(req.params.split);
+    if (split !== 'dev' && split !== 'heldout' && split !== 'all')
+      return sendProblem(res, 'not_found');
+    const report = loadEvaluation(split);
+    if (!report) return sendProblem(res, 'not_found');
+    res.json(report);
   });
 
   router.post('/lab/demo/:id', ...guards, async (req, res) => {

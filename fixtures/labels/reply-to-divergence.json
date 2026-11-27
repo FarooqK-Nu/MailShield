@@ -3,6 +3,9 @@
   "title": "Replies go elsewhere",
   "description": "A valid Acme message whose Reply-To points to payhelp.example.",
   "dns": "acme.json",
+  "category": "impersonation",
+  "truth": "suspicious",
+  "split": "dev",
   "eml": "dev/reply-to-divergence.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

@@ -3,6 +3,9 @@
   "title": "Acme address, someone else’s signature",
   "description": "From acme.example (p=reject), signed only by bulk-mailer.example (A-8).",
   "dns": "acme.json",
+  "category": "impersonation",
+  "truth": "suspicious",
+  "split": "dev",
   "eml": "dev/brand-dmarc-unaligned.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

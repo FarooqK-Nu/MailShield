@@ -3,6 +3,9 @@
   "title": "Body changed after signing",
   "description": "The same message with one phrase edited after it was signed.",
   "dns": "acme.json",
+  "category": "tampered",
+  "truth": "suspicious",
+  "split": "dev",
   "eml": "dev/body-tampered.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

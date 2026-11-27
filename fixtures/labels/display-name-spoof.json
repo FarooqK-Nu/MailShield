@@ -1,0 +1,23 @@
+{
+  "id": "display-name-spoof",
+  "title": "Acme name on an unrelated domain",
+  "description": "The display name says Acme Billing; the address and signature belong to mailer-help.example.",
+  "category": "impersonation",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/display-name-spoof.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R1"
+    ]
+  }
+}

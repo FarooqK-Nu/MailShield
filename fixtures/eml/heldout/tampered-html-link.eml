@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=GlMyYPgyjJLN2Oslc6BGZCMZz262lkIQgiclEIkL470=;
+ b=ngkZxFdzG0fwnnAiD9/fv5rX8nTSTZh3LjxWWpnYT9a2dvChlaXgDZgWHBV8XDrctdZW0FaKV
+ vRMwRfXES3Zc+gL4q3tqtnx0PchvNqP06KiKw/M/01bSPck4gnSLhLWtxe9j2/zu3/FZYDMF3nq
+ 0X4nw6OixQZFeNHBmGBIXOkFoL4kw1eCc1coOzO0QqVRuLcGS4X2+XOLkbuLb8MQPhbnhu2jQ1L
+ 6D42l8E18ueQJvUnewMWcixlXCY5QlHXrlk0vp9jdoLybGIcABjlbum9M2jZ1vorM9RoynoQ6q2
+ 8a8A13x0dinA37ZlkCKgdWl7mM6kt34aD5eoS5a7Zs7A==
+From: Acme Support <support@acme.example>
+To: alice@example.org
+Subject: Sign in
+Message-ID: <1142779229@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<p><a href="https://acme-signin.example/">https://acme.example/signin</a></p>

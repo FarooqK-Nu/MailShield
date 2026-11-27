@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=Sgm6UOimVahwZ0kDH5YOvnqhxcMfEXVMi3Kx+Og0oHU=;
+ b=tVFmJqBr9LyUIf6UsaN4HYg4qZSmUzY6eFUFDgwbLgSG7FPmZSwwqPQ2Hu3juJ+A0Pw+22ot2
+ WWhnEDMMKBlrxVidWoZKl4UletXSA97CdYdoPyRl3pVkQqYlWhY6AILPRYqP+hj8Lj9OmzOH212
+ 2ChIJBL7nYkKVn7kELPuqmkUaxDMcVzQIlSPRVI37x3xUIYoWbA9hGbe+35BxIPitPvQsZCvVeO
+ npT+EovgSiOrdK8gYM3LTVIpF4GKNDOXzL0sNcGeNcuts99v1mKCc7SFC3mDlAuKWsEl3TVYPdV
+ bZx2ROjMHvcQstJSC1ec41N2/cXjLmG3uXkEKaL0Zhkw==
+From: Acme Support <support@acme.example>
+To: alice@example.org
+Subject: Your account
+Message-ID: <155027819@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<p>Open <a href="https://acme.example/account">https://acme.example/account</a>.</p>

@@ -1,0 +1,24 @@
+{
+  "id": "tampered-globex-body",
+  "title": "Globex body edited",
+  "description": "One sentence changed after signing.",
+  "category": "tampered",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/tampered-globex-body.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "authentication_concern",
+    "signatures": [
+      {
+        "status": "fail",
+        "failureStage": "body_hash"
+      }
+    ],
+    "rules": [
+      "R6",
+      "R9"
+    ]
+  }
+}

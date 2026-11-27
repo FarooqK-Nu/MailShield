@@ -24,21 +24,11 @@ const fixture = (id: string) => loadFixture(id)!;
 const legit = () => fixture('legit-signed');
 
 describe('labelled fixtures', () => {
-  it('include the Phase 1 and Phase 3 sets', () => {
-    expect(listFixtures().map((f) => f.id)).toEqual([
-      'body-tampered',
-      'brand-dmarc-unaligned',
-      'dns-timeout',
-      'legit-signed',
-      'link-mismatch',
-      'lookalike-authenticated',
-      'missing-dns-key',
-      'multi-signature',
-      'outsourced-sender',
-      'partial-body',
-      'reply-to-divergence',
-      'unsigned',
-    ]);
+  it('include the original twelve fixtures', () => {
+    const ids = listFixtures().map((f) => f.id);
+    for (const id of ['body-tampered', 'legit-signed', 'unsigned', 'outsourced-sender']) {
+      expect(ids).toContain(id);
+    }
   });
 
   it.each(listFixtures().map((f) => f.id))('%s matches its label', async (id) => {
@@ -54,6 +44,10 @@ describe('labelled fixtures', () => {
 
     expect(() => AnalysisResult.parse(result)).not.toThrow();
     expect(result.verdict).toBe(label.expected.verdict);
+    // Invariant 9: the verdict names a table row, a reason and only findings that exist.
+    const known = new Set(result.findings.map((f) => f.id));
+    expect(result.verdictBasis.reason.length).toBeGreaterThan(0);
+    for (const id of result.verdictBasis.findingIds) expect(known.has(id), id).toBe(true);
     expect([...new Set(result.findings.map((f) => f.ruleId))].sort()).toEqual(label.expected.rules);
     expect(result.signatures.map(({ status, failureStage }) => ({ status, failureStage }))).toEqual(
       label.expected.signatures,

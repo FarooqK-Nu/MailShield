@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=other-company.example; h=Date: Subject: To: From; q=dns/txt; s=s1;
+ t=1780308000; bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=e3kAcMMihU4oXhpuePajHpAShEOXaUfwqIkP4oVKQnMASpRcRoT8Qar07PY0pvtrO3+plH4fZ
+ kChzLo7qr0isK/qclpwuEKSchFq3QJQlBXUO8NOB8PloaRWjGqZvJxDVz5GrX7DtMVKAApyH76O
+ lwMp/3VMCuNPqUhjhcwwDHY3iKimvimv5YALUwLjbMsYcEh3tPEBlstDIxnNiaa9ARfRdfNty5B
+ EGsNPXs7dpDi7h5dSbaBBoW0l/YTSQMN0PRt/RVLeo2obM+9vPMuc4a1iyo1IqD1xYXTO/RJK+G
+ IChvy7pFs2fhSIFWXg0QB8g15m0MV2UuNIIoNvnphEwg==
+From: Alice Example <alice@other-company.example>
+To: alice@example.org
+Subject: Hello
+Message-ID: <1737736623@other-company.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you
