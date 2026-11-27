@@ -1,0 +1,22 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=globex.example;
+ h=Reply-To: Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=B1PHmkxNA5vclY/GVZELdg7WBht+N1bv/8eeIiSsqCrxcLUA8ms6tXgJPkhTQS14U8BrMgpbe
+ gO6rbDgUzyI5yspamSazjGrivGAjYN2xIWwmUJyi/3n8Hk/dzquIrl0kSlTMIjML9QbLdK2PTFe
+ fu6GRD77g2rtXjHxW02W4n5H+zZpvBelBMlEB5UezRnFUt3SY0JpFarWNOhrfjxFgnDTvhInH1C
+ 0KmT1g0xJS7ewKOy04sRz1Y/PybDDeX8bJMMgvmvPo71CVxUrP/13icRI1VYmM/5hUS+URmIshT
+ tz71/7dejY5cfA9flVjzHEUfMa3NQ5LkF+9uBSl8AKsQ==
+From: Globex Payroll <payroll@globex.example>
+To: alice@example.org
+Subject: Bank details
+Message-ID: <139448665@globex.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Reply-To: Payroll <pay@payroll-desk.example>
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

@@ -3,6 +3,9 @@
   "title": "Sent by Acme’s mail provider",
   "description": "From and signed by acme-mail.example, an approved service provider for Acme.",
   "dns": "acme.json",
+  "category": "edge",
+  "truth": "legitimate",
+  "split": "dev",
   "eml": "dev/outsourced-sender.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

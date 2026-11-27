@@ -1,0 +1,18 @@
+{
+  "id": "unsigned-brand-spoof",
+  "title": "Unsigned Acme name from a free-mail domain",
+  "description": "No signature at all; the display name claims Acme.",
+  "category": "impersonation",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/unsigned-brand-spoof.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [],
+    "rules": [
+      "R1"
+    ]
+  }
+}

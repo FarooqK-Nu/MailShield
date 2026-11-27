@@ -1,0 +1,21 @@
+{
+  "id": "acme-reply-to-same-domain",
+  "title": "Reply-To on the same domain",
+  "description": "Replies go to another Acme address, which is normal.",
+  "category": "legitimate",
+  "split": "heldout",
+  "truth": "legitimate",
+  "dns": "eval.json",
+  "eml": "heldout/acme-reply-to-same-domain.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

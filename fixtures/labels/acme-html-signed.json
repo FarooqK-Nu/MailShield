@@ -1,0 +1,21 @@
+{
+  "id": "acme-html-signed",
+  "title": "Signed HTML message with matching link",
+  "description": "The link text and target both use acme.example.",
+  "category": "legitimate",
+  "split": "dev",
+  "truth": "legitimate",
+  "dns": "eval.json",
+  "eml": "dev/acme-html-signed.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

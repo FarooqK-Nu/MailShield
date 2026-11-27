@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=q1wxrji1uPcoIeJ/Bu6mABLL2GuGR2C3oNDSnsnzgxM=;
+ b=TjykrcJGmCK0WZ35qTDyQYHdJRpi0pPrB4JX4fH7yU2kwVxkqbGOgnPZYngV8O2nAsh1YzOPI
+ yJRzxH5lbtpRiGjOtlMmfDyyh+9LQdYK/xBTcRftZDL2l75fUfWteR7sW0C4onB89pzxlov7KSM
+ bFzNHOxAvQqjCTmofA4q7ZpysOToSmorWtW6FVvIg40YPe5bZxg9pNs7pxLtiSp+FR4BcL8EGb4
+ 9/FfuQBZ3g1+7G8rnG/P3loPIGZqTmkLaHftNOQy+dOx83BjAcXfwL9bBJbALVqjF1g7me9Xpzg
+ DMCzU5204/LRPlSQ4Z2zRb44Hh7hfUXS+Xx90yKPqvFQ==
+From: Acme Support <support@acme.example>
+To: alice@example.org
+Subject: Help centre
+Message-ID: <1716806671@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Visit https://acme.example/help for guides.

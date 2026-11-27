@@ -3,6 +3,9 @@
   "title": "Two signatures",
   "description": "Signed by Acme and by its mail provider acme-mail.example.",
   "dns": "acme.json",
+  "category": "legitimate",
+  "truth": "legitimate",
+  "split": "dev",
   "eml": "dev/multi-signature.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

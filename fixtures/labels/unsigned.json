@@ -3,6 +3,9 @@
   "title": "Unsigned message",
   "description": "An Acme message with no DKIM signature, although Acme publishes p=reject.",
   "dns": "acme.json",
+  "category": "ambiguous",
+  "truth": "unknown",
+  "split": "dev",
   "eml": "dev/unsigned.eml",
   "now": "2026-06-01T12:00:00.000Z",
   "expected": {

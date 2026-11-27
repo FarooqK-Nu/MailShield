@@ -1,0 +1,17 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=globex.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=N9lYSFoyQQRxqWibFM1xcNrU5tr0mCgMMd6eD+FIkyA=;
+ b=y5wL4OU/DP3xUBfP3IbNPu+ukUaDRL8j3SmMACHa9w0+RH9pt0WPz6yQXmQ4xvQryjG8o74G0
+ yu/QAfFAswvNk7Z/ZQg8PK08qdXQAg/87otlKQc45IPBA60q/bNCWyMguKPHxea5XQ2c6imYyGW
+ IoAkuWCZubeZNwQZpv8zcg4ST5m7jmo6oRoCSuOBMLd9IcboEtHdE/BTSdAZVpIcPOtRbrGwWVu
+ LEKFbEOvIqFaJsMh6nNg/ax+D922TwOGxSZY1Jxdv7bRqPhjGsJ/8Kqksk9rhRZfKoblMWlxm/a
+ tH+C0vZXzhqFARmhi9duECWWdpfQlpRkRZp5tYFCyxAg==
+From: Globex Payroll <payroll@globex.example>
+To: alice@example.org
+Subject: Review your benefits
+Message-ID: <840910474@globex.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<p><a href="https://globex-hr.example/login">https://globex.example/benefits</a></p>

@@ -8,6 +8,11 @@ export const FixtureLabel = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: z.string(),
   description: z.string(),
+  category: z.enum(['legitimate', 'impersonation', 'tampered', 'ambiguous', 'edge']),
+  /** Thresholds are tuned on `dev` only; `heldout` is run once for the report. */
+  split: z.enum(['dev', 'heldout']),
+  /** What the message really is, set by construction and independent of the engine's answer. */
+  truth: z.enum(['legitimate', 'suspicious', 'unknown']),
   eml: z.string(),
   dns: z.string(),
   /** Fixed clock, so results never depend on today's date. */

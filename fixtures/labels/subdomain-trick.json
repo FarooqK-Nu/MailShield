@@ -1,0 +1,24 @@
+{
+  "id": "subdomain-trick",
+  "title": "acme.example as a prefix of another domain",
+  "description": "The sender domain is acme.example.account-help.example, whose real owner is account-help.example.",
+  "category": "impersonation",
+  "split": "heldout",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "heldout/subdomain-trick.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R1",
+      "R4"
+    ]
+  }
+}

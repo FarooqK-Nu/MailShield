@@ -1,0 +1,21 @@
+{
+  "id": "acme-billing-registered-address",
+  "title": "Signed message from a registered Acme address",
+  "description": "billing@acme.example is listed for Acme in the registry and the signature is valid.",
+  "category": "legitimate",
+  "split": "heldout",
+  "truth": "legitimate",
+  "dns": "eval.json",
+  "eml": "heldout/acme-billing-registered-address.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "no_concerning_mismatch",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": []
+  }
+}

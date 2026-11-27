@@ -1,0 +1,22 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Reply-To: Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=wmhD97y7q0Z1uTc+QNXjXW1lYnJEajg/XBhGBg94ljL+8idKcIfOK+WjIkmYyVwOIhEZ0jOZl
+ ccqosFsG62AvK5IuyBrlvoQBtu6+bsI5ZMNSTmZfBizdYghGiaXFbU7vzls0DtlAzkOORxgY+mh
+ 9Skh9TmF9XPvqLufiN9Ji3GGkQy/WbryT+O4Qti4TqL6k4uGkazFPoQdjKwx1ALGBk1VdiANkSU
+ erv4Irec6Nf1l4N1fVqLo6mBJ6gvQZGLpDEnYYa24+xuCmKyqRTviLUpWGIp6H/OWkZipuvrqPb
+ dH4jPrhHKX6DHwf13WRNNnjh/5pjNsuxdMipM9wZYmLA==
+From: Acme Support <support@acme.example>
+To: alice@example.org
+Subject: We can help
+Message-ID: <1382396696@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Reply-To: Acme Help <help@acme.example>
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

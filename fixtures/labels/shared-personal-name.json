@@ -1,0 +1,23 @@
+{
+  "id": "shared-personal-name",
+  "title": "Another person called Alice",
+  "description": "A valid message from Alice at an unregistered company; the name matches the registry but the address does not.",
+  "category": "edge",
+  "split": "heldout",
+  "truth": "unknown",
+  "dns": "eval.json",
+  "eml": "heldout/shared-personal-name.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R2"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=unknown-shop.example; h=Date: Subject: To: From; q=dns/txt; s=s1;
+ t=1780308000; bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=G2/Swc9+LlwtIVl2dWLssiJ7Cug1W67egStEHMK2eFZIUMmu0mR/X4iDEKntWmLcTXimTqBRO
+ 03ORjEoG63UB64GLO+/Z0sPyHSOog6QsaGcRDXPsTFvZthfpAAPFulFqRkIBvdtDKK0TAUio9yU
+ 5f9UovD4eVz8+V/alQdA26ZmU9l9vh1sWW+s8hf7zPXLmpeUQimKa0UgGQYQhrs1opXSg+MjA8b
+ ZsL/WOTjYvZcDAIdC49EDhiLoD8z3wPK3j51+DTE9G2Pk+mitaN018SaMPYaVOfflZ3n/Gg9ZQP
+ EY3sMeiR9IxUWpEzBUCUFZEaWwmDWyVp/DM40TyZ1xBw==
+From: Shop News <news@unknown-shop.example>
+To: alice@example.org
+Subject: Offers
+Message-ID: <406619387@unknown-shop.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

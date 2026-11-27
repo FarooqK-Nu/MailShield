@@ -1,0 +1,23 @@
+{
+  "id": "globex-reply-to-divergence",
+  "title": "Globex replies go elsewhere",
+  "description": "A valid Globex message whose Reply-To is on payroll-desk.example.",
+  "category": "impersonation",
+  "split": "heldout",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "heldout/globex-reply-to-divergence.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R5"
+    ]
+  }
+}

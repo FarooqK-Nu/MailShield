@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=g1obex.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=lFGE/CkFctDtZ70zYEyaBNBUbdM3RKznAxvqL8dVQHS3T8uvqmZb+2hLcpc8774UYB8emn+Cx
+ UF1SLG9zV7zyB04eYcxikIzNPDyUGqupCJs4twfUdTfJMdXwiFAIts98u3kt+tEEMBVeR37mORS
+ brKdhBNVs1X6RDrgSKLGsJTXevjnFSWLNISp7nqv1sPQpoQvRF49brRexQaAx5L2sAhwfVCZ3Se
+ VsKHS4OKxo2B7Eblcjq8jXazr8jFeMU6HGtYm5jB4ZcAcOV0CLlx7Y7TFzNG/UNcvHuIZRCU0y0
+ qtLJbDRpy+ZDPQTn1gTNyH7xWK4HHh4LLuHjkyM1PJ/A==
+From: Globex Payroll <payroll@g1obex.example>
+To: alice@example.org
+Subject: Payroll correction
+Message-ID: <1466833827@g1obex.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

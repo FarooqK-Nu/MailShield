@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=gCJHEcE7wMF+0SvTqASQJcnkrw2NTns5lt7bWKbM94WaMHeCkCp5vq4Sr4JSI5gAGtA8uihOd
+ 8X4eEt/GkGE+EOeMVog4t1H4zxGIUg2GhJQygiJAl2VK9v9uJUxaBSuYr/K+TB0L7tqcfYTLmFv
+ zj/xl9f7U2bD5IwJlLYLeCf9dQuH0DGpYyn6hEVSA0dLAq1X32dk1/MjT/eYGqrdUVbSNJ3Lo+j
+ nojHOAlV5jfcksTbBnaN1GE34rTD9TM9CsL+S3/Boapvj7TfcaaBB+jZCQ21zoGJQGwToiNYVxV
+ gjWCbzsMj3rc66t/uZRAWL2tmfYmuusH5H6sMNCfLGSA==
+From: Acme Support <support@acme.example>
+To: alice@example.org
+Subject: Final notice
+Message-ID: <139248317@acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

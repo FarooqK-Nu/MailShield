@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailer-help.example; h=Date: Subject: To: From; q=dns/txt; s=s1;
+ t=1780308000; bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=WvcxAdsemfc3Y/4at0mkAdS2dInIIlGxcQVPYjjmu9WUcvhuViFl+82foYi92iVe1NKXJTTIn
+ 3r0nxKVt0MXntdsqCE+FrDTY1iiWXdeWx3RcuU61q3tFZw2gCudV42GP9vLYRcdrBRo0QyKa34M
+ gT1gG5iBgnIZzA3//1XrPIH9A+/NjdhFTDZGg18BIT0EOryGd5YtkuUxwtr2bptE1BBPHPl4auX
+ mF2Ukc1t1Pj26N+yfZMibrIcBpA5T6MporvulxavucBa2xE04wPFT7CFJ9pKiuXPO8iKEiu2qO6
+ 4mLEHYVOrN4Zw0Ngcw2y2a02DfujoV53gFTZrhqe5wnw==
+From: Acme Billing <billing@mailer-help.example>
+To: alice@example.org
+Subject: Invoice overdue
+Message-ID: <1745567144@mailer-help.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

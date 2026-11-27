@@ -1,0 +1,24 @@
+{
+  "id": "homoglyph-domain",
+  "title": "Cyrillic look-alike of acme.example",
+  "description": "The first letter of the domain is Cyrillic; the domain is signed correctly.",
+  "category": "impersonation",
+  "split": "dev",
+  "truth": "suspicious",
+  "dns": "eval.json",
+  "eml": "dev/homoglyph-domain.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "possible_impersonation",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R1",
+      "R3"
+    ]
+  }
+}

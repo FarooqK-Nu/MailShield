@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=globex.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=ajirLqyxBTwQFGMd6qdEA4ifC/ID16y4wLaskFFqEKAwNjfTnFO65ER+pb+n18zXi34Xm8U0O
+ 4SNmP6BWnVYUPO7eCpxGb7EQiMqJ2xqeyXtIJsoZylsV+4eopT+d8eOoM7NeIcJLylJch5MQ030
+ 9eW1InmmOTN0PT2FAyla+nBiL0K9664fNJi5OC0pvzXCjRhCAps28S5Z8Jz37ZRN7BZqzekNnB7
+ 9kq9+A2cuwkA2dyos7Uf+PkvHXq4cW//cyFzCXt4xDIetE2dMXa9xPOhnk+C+1XuIlEOLqo+jX1
+ bV85Pn8G/hP2Ro5XELzHwnS9391xJk21ircYpq1hYtEg==
+From: Globex Payroll <payroll@globex.example>
+To: alice@example.org
+Subject: Your payslip
+Message-ID: <45152956@globex.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you
