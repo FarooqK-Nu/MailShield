@@ -307,7 +307,7 @@ export function Lab({ client, onUnauthorized }: Props) {
             disabled={busy}
             onClick={start}
           >
-            {busy && <LoaderCircle aria-hidden className="size-4 animate-spin" />}
+            {busy && <LoaderCircle aria-hidden className="size-4 motion-safe:animate-spin" />}
             Send and verify
           </button>
           {error && (

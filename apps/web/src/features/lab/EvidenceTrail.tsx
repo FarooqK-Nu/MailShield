@@ -35,11 +35,13 @@ export function EvidenceTrail({ stages }: { stages: StageEvent[] }) {
   const [speed, setSpeed] = useState(1);
   const [inspect, setInspect] = useState<StageName | null>(null);
 
-  // A new run starts the animation again.
+  // A new run starts the animation again, unless the user asked for reduced motion: then every
+  // stage is shown at once and the replay controls still work.
   useEffect(() => {
-    setShown(0);
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    setShown(reduce ? stages.length : 0);
     setInspect(null);
-    setPlaying(true);
+    setPlaying(!reduce);
   }, [stages]);
 
   useEffect(() => {

@@ -132,7 +132,8 @@ export function PersonalLab({
         disabled={busy}
         onClick={() => void execute()}
       >
-        {busy && <LoaderCircle aria-hidden className="size-4 animate-spin" />} Verify the message
+        {busy && <LoaderCircle aria-hidden className="size-4 motion-safe:animate-spin" />} Verify
+        the message
       </button>
       {error && (
         <p role="alert" className="text-sm font-medium">
