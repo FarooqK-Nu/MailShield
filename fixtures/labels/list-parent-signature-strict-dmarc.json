@@ -1,0 +1,23 @@
+{
+  "id": "list-parent-signature-strict-dmarc",
+  "title": "Group message signed by the parent domain, strict DMARC",
+  "description": "A real-world pattern (found on an authorised university message): a group sends as lists.acme.example but signs with acme.example, and acme.example publishes DMARC with adkim=s. Strict alignment cannot match a subdomain, so DMARC cannot be confirmed from DKIM alone, although the message is genuine.",
+  "category": "edge",
+  "split": "dev",
+  "truth": "legitimate",
+  "dns": "acme-strict-dmarc.json",
+  "eml": "dev/list-parent-signature-strict-dmarc.eml",
+  "now": "2026-06-01T12:00:00.000Z",
+  "expected": {
+    "verdict": "identity_unverified",
+    "signatures": [
+      {
+        "status": "pass",
+        "failureStage": null
+      }
+    ],
+    "rules": [
+      "R6"
+    ]
+  }
+}

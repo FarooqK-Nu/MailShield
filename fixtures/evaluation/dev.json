@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-11-27T03:16:44.010Z",
+  "generatedAt": "2026-11-27T03:35:28.248Z",
   "split": "dev",
   "counts": {
-    "total": 28,
+    "total": 29,
     "byCategory": {
       "legitimate": 6,
       "tampered": 5,
       "impersonation": 8,
       "ambiguous": 5,
-      "edge": 4
+      "edge": 5
     },
     "byTruth": {
-      "legitimate": 8,
+      "legitimate": 9,
       "suspicious": 13,
       "unknown": 7
     }
@@ -23,7 +23,7 @@
       "trueNegative": 8,
       "falseNegative": 0,
       "abstainedSuspicious": 4,
-      "abstainedLegitimate": 0
+      "abstainedLegitimate": 1
     },
     "precision": {
       "numerator": 9,
@@ -47,9 +47,9 @@
     "cleared": 0
   },
   "overallAbstentionRate": {
-    "numerator": 9,
-    "denominator": 28,
-    "value": 0.32142857142857145
+    "numerator": 10,
+    "denominator": 29,
+    "value": 0.3448275862068966
   },
   "cases": [
     {
@@ -323,6 +323,24 @@
         {
           "ruleId": "R7",
           "title": "A link goes somewhere other than it says",
+          "severity": "caution"
+        }
+      ]
+    },
+    {
+      "id": "list-parent-signature-strict-dmarc",
+      "title": "Group message signed by the parent domain, strict DMARC",
+      "category": "edge",
+      "split": "dev",
+      "truth": "legitimate",
+      "verdict": "identity_unverified",
+      "outcome": "abstained",
+      "disagreement": true,
+      "explanation": "A real-world pattern (found on an authorised university message): a group sends as lists.acme.example but signs with acme.example, and acme.example publishes DMARC with adkim=s. Strict alignment cannot match a subdomain, so DMARC cannot be confirmed from DKIM alone, although the message is genuine. Not cleared: the engine abstained on a legitimate message.",
+      "findings": [
+        {
+          "ruleId": "R6",
+          "title": "lists.acme.example asks receivers to quarantine unauthenticated mail",
           "severity": "caution"
         }
       ]

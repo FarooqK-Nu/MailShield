@@ -1,0 +1,21 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acme.example;
+ h=Date: Subject: To: From; q=dns/txt; s=s1; t=1780308000;
+ bh=tJQ6XpVHyTZRph1BDY3t9/wyB+4XgHAFR5DnJq5leic=;
+ b=OCWxWq2GvhdxCTemwiFohILR8KJug79IXB1ZIqWn6g3g0I2yCRsF6vZLuQXltSI8fDWvjC8Tm
+ qUkWNiHTkbaZQ2wtSMvJTd4HjxqoV4Bmz88L9YsJCxaZ7PWs0IgQxCzHcyw2otjW+T8YH0FmmBa
+ 8ylZUXfcGoSV1ZNEBjqD3CXdgP4J+FJS8UueIQpLV0KSBf6N9zQVt2VRjgXISE3c124TY1TXvdv
+ ODxLk0eQUIy3lYOMk9qpTTSSGlTEtIm9iqSHHN3/1RYRLfyCxabT6rV8BFoHXtyI+GWK3cMXeIX
+ wBiF1//HOjuVNIz9Cfq0gu0Pa4K6LDKIQORF0ZcwtQbg==
+From: Acme Students <students@lists.acme.example>
+To: alice@example.org
+Subject: Schedule for tomorrow
+Message-ID: <2101218699@lists.acme.example>
+Date: Mon, 01 Jun 2026 10:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello Alice,
+
+Your document is ready in your account.
+
+Thank you

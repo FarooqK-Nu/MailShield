@@ -456,3 +456,14 @@ The three Phase 7 roadmap exit criteria are met (critical fixtures pass locally 
 ### 11. Next phase
 
 Phase 8 (stretch) is optional and not started. Before any further work: decide the A-12 extension end-to-end item, open the Evaluation page in a browser, and push the branch to see the CI run.
+
+**Note added 2026-11-27 (after the Phase 7 merge): real-message check and one added fixture.**
+
+With the user's permission, one real university message (kept in the git-ignored `private/` folder, never committed or logged) was analysed locally with live DNS. Its DKIM signature, made by `nu.edu.pk` with selector `google`, verified (`pass`, whole body covered). The verdict was "identity unverified" with an R6 caution, because the From domain is the subdomain `pwr.nu.edu.pk` and `nu.edu.pk` publishes DMARC with `adkim=s` (strict alignment), which a parent-domain signature cannot satisfy. The message had gone through a Google Group ("via ..."). The receiving server would have accepted it by SPF, which cannot be checked on an uploaded file; the tool says so in its limitations and reports DMARC as unknown, not failed.
+
+The synthetic set had no such case, so fixture `list-parent-signature-strict-dmarc` (category edge, truth legitimate, development set, zone `fixtures/dns/acme-strict-dmarc.json`) was added. The engine gives the same answer on it as on the real message. No rule was changed. Corrections to the figures above, which describe the corpus as it was at the end of Phase 7 (44 fixtures, 28 development):
+
+- The corpus now has 45 fixtures (29 development, 16 held-out, 7 edge cases). The held-out results are unchanged and were not re-run.
+- Development: precision 100% (9/9), recall 69.2% (9/13), F1 0.818 (unchanged); overall abstention 34.5% (10/29). Combined: precision 100% (14/14), recall 70.0% (14/20), F1 0.824.
+- One legitimate message is now abstained on (the new fixture). There are still no false positives.
+- This is a single real message, so it shows that the pattern exists; it is not evidence about how common it is. The only real message tested was an authorised one from the user's own mailbox.
