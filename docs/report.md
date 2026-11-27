@@ -61,6 +61,8 @@ Copy the block below for each new phase.
 
 **Report date:** 2026-11-27 · **Branch:** `phase-4-gmail-extension` (from `main` after the Phase 3 merge `d0cc62d`) · **Commits:** `bb6e59a..2b2fe9b`, plus the commit that adds this section
 
+> **Note added 2026-11-27:** the live Gmail checklist in `docs/spikes.md` was run on the test account, and all nine steps passed, as reported by the project owner. Exit criteria 1 and 3 are now met, so every Phase 4 exit criterion is met. The paths marked **unverified** in §2, §7 and §9 (Google sign-in and consent, real Gmail markup for the hint, metadata confirmation, live analysis with trusted Gmail results, OAuth denial, disconnect and the full-report handoff from Gmail) were covered by that run. The picker was not part of the checklist and remains unverified live.
+
 ### 1. Phase objective
 
 Build the daily-use experience inside Gmail (roadmap Phase 4): a Chrome MV3 side panel that analyzes the message the user has open, through the Gmail API and the local verification service, without the OAuth token ever leaving the extension. In the security area, implement the live receiver-result trust strategy of `context.md` §7, so that Gmail's own `Authentication-Results` can count as `trusted_receiver` evidence for messages fetched from the Gmail API, and only for those.

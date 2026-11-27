@@ -105,7 +105,7 @@ result here without addresses or content.
 - **Date:** 2026-11-26
 - **Result:** PASS — the DKIM signature card showed `pass` for the signing domain `nu.edu.pk`.
 
-## Phase 4 live Gmail check — (PENDING)
+## Phase 4 live Gmail check — (COMPLETED)
 
 Roadmap Phase 4 exit criteria 1 and 3 need a person signed in to the test account. Run once and
 record the outcome here, without addresses, subjects or content.
@@ -122,6 +122,7 @@ record the outcome here, without addresses, subjects or content.
 
 ### Outcome
 
-- **Date:**
-- **Steps passed:**
-- **Failed step and exact message:**
+- **Date:** 2026-11-27
+- **Result:** PASS (reported by the project owner after a run on the test account)
+- **Steps passed:** 1–9
+- **Failed step and exact message:** none
