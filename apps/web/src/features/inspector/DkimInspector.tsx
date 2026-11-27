@@ -1,7 +1,6 @@
 import type { SignatureEvidence } from '@mailshield/contracts';
-import { EvidenceCard, StatusBadge } from '@mailshield/ui';
+import { anchorId, EvidenceCard, StatusBadge } from '@mailshield/ui';
 import { useState } from 'react';
-import { anchorId } from './targets.ts';
 
 const TAGS: Record<string, string> = {
   v: 'Version',

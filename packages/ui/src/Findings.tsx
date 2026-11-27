@@ -1,5 +1,6 @@
 import type { Finding } from '@mailshield/contracts';
 import { CircleAlert, Info, TriangleAlert, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { RefLinks } from './RefLinks.tsx';
 import { anchorId, type Target } from './targets.ts';
 
@@ -22,7 +23,16 @@ function groups(findings: Finding[]): Finding[][] {
   return [...out.values()].sort((a, b) => rank(a) - rank(b));
 }
 
-export function Findings({ findings, onGo }: { findings: Finding[]; onGo: (t: Target) => void }) {
+export function Findings({
+  findings,
+  onGo,
+  actions,
+}: {
+  findings: Finding[];
+  onGo: (t: Target) => void;
+  /** Extra controls per finding, such as the side panel's "mark reviewed". */
+  actions?: (finding: Finding) => ReactNode;
+}) {
   if (findings.length === 0) {
     return <p className="text-sm">No rule raised a finding for this message.</p>;
   }
@@ -70,6 +80,7 @@ export function Findings({ findings, onGo }: { findings: Finding[]; onGo: (t: Ta
                       Rule {f.ruleId} v{f.ruleVersion}
                     </p>
                     <RefLinks refs={f.evidenceRefs} onGo={onGo} />
+                    {actions?.(f)}
                   </article>
                 ))}
               </div>

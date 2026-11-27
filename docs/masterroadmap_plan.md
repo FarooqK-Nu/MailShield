@@ -140,10 +140,10 @@ gantt
 | | Side panel quick actions: open full report, view raw headers, copy fingerprint, open registry entry, mark finding reviewed (local); privacy settings. “Export redacted report” is enabled in Phase 6 |
 
 **Exit criteria:**
-- [ ] On a test account: open a message → panel confirms the From/Subject → Analyze → real result.
-- [ ] Switching messages mid-analysis never shows the old result on the new message.
-- [ ] OAuth denial and disconnect show actionable errors; the token is never sent to the server (code review + network test).
-- [ ] If live OAuth is blocked, the blocker is written in `docs/spikes.md` and the fallback demo is rehearsed.
+- [x] On a test account: open a message → panel confirms the From/Subject → Analyze → real result. (Live check passed on 2026-11-27; see `docs/spikes.md`.)
+- [x] Switching messages mid-analysis never shows the old result on the new message (reducer tests and the live check).
+- [x] OAuth denial and disconnect show actionable errors; the token is never sent to the server (code review + network test). (Token: network test. Denial and disconnect: live check passed on 2026-11-27.)
+- [x] If live OAuth is blocked, the blocker is written in `docs/spikes.md` and the fallback demo is rehearsed. (Not blocked: the Phase 0 spike fetched a raw message. The `.eml` fallback and picker are built.)
 
 ---
 

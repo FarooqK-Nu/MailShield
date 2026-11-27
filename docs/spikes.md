@@ -104,3 +104,25 @@ result here without addresses or content.
 
 - **Date:** 2026-11-26
 - **Result:** PASS — the DKIM signature card showed `pass` for the signing domain `nu.edu.pk`.
+
+## Phase 4 live Gmail check — (COMPLETED)
+
+Roadmap Phase 4 exit criteria 1 and 3 need a person signed in to the test account. Run once and
+record the outcome here, without addresses, subjects or content.
+
+1. `npm run dev`, then reload the unpacked extension from `apps/extension/dist` in `chrome://extensions`.
+2. Open Gmail in the test account's Chrome profile and click the MailShield icon.
+3. Enter the pairing code from the service terminal. Click **Connect Gmail (read-only)** and allow access.
+4. Open one message. The panel must show its From, Subject and Date as confirmed by the Gmail API.
+5. Click **Analyze**. Expect a verdict; under Authentication → **Reported by Gmail**, Google's SPF, DKIM and DMARC results should appear as trusted.
+6. Start an analysis and immediately open another message. The first result must not appear.
+7. Open the privacy panel (gear), click **Disconnect Gmail**, then Analyze again: expect "Connect Gmail first" and the connect card.
+8. Click **Connect** and press **Cancel** in Google's dialog: expect "Gmail access was not granted…".
+9. Click **Open full report**: the dashboard opens and shows the same verdict.
+
+### Outcome
+
+- **Date:** 2026-11-27
+- **Result:** PASS (reported by the project owner after a run on the test account)
+- **Steps passed:** 1–9
+- **Failed step and exact message:** none

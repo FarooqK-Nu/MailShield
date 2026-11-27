@@ -6,6 +6,7 @@ import { PairingScreen } from './PairingScreen.tsx';
 import { Analyze } from './routes/Analyze.tsx';
 import { Overview } from './routes/Overview.tsx';
 import { Registry } from './routes/Registry.tsx';
+import { Report } from './routes/Report.tsx';
 import './styles.css';
 import { useTheme } from './theme.ts';
 
@@ -14,11 +15,18 @@ const PAGES = [
   { hash: '#/analyze', label: 'Analyze' },
   { hash: '#/registry', label: 'Registry' },
 ] as const;
-type Page = (typeof PAGES)[number]['hash'];
+/** Opened by the side panel's "Open full report"; not in the navigation (decision A-14). */
+const REPORT = '#/report';
+type Page = (typeof PAGES)[number]['hash'] | typeof REPORT;
 
 /** Hash routing keeps the dashboard a static page with no server-side routes. */
 function usePage(): Page {
-  const read = () => (PAGES.find((p) => p.hash === window.location.hash)?.hash ?? '#/') as Page;
+  const read = (): Page => {
+    // A page may carry a query, for example #/registry?q=Acme.
+    const path = window.location.hash.split('?')[0];
+    if (path === REPORT) return REPORT;
+    return PAGES.find((p) => p.hash === path)?.hash ?? '#/';
+  };
   const [page, setPage] = useState(read);
   useEffect(() => {
     const onChange = () => setPage(read());
@@ -41,7 +49,9 @@ function App() {
   const forget = useCallback(() => keep(null), [keep]);
 
   return (
-    <div className={`mx-auto px-4 py-6 ${page === '#/analyze' ? 'max-w-7xl' : 'max-w-3xl'}`}>
+    <div
+      className={`mx-auto px-4 py-6 ${page === '#/analyze' || page === REPORT ? 'max-w-7xl' : 'max-w-3xl'}`}
+    >
       <header className="mb-6 flex flex-wrap items-center gap-4">
         <h1 className="mr-auto text-2xl font-semibold">MailShield</h1>
         {client && (
@@ -67,7 +77,9 @@ function App() {
         {client && page === '#/registry' && <Registry client={client} onUnauthorized={forget} />}
         {client && page === '#/' && <Overview />}
         {client && page === '#/analyze' && <Analyze client={client} onUnauthorized={forget} />}
-        {!client && <PairingScreen onPaired={keep} />}
+        {/* The report needs no pairing: its data comes from the extension, not the service. */}
+        {page === REPORT && <Report />}
+        {!client && page !== REPORT && <PairingScreen onPaired={keep} />}
       </main>
     </div>
   );

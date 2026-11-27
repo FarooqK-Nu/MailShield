@@ -123,7 +123,11 @@ function IdentityCard({
 }
 
 export function Registry({ client, onUnauthorized }: Props) {
-  const [filter, setFilter] = useState<IdentityFilter>({});
+  // The side panel's "Open registry entry" links to #/registry?q=<name>.
+  const [filter, setFilter] = useState<IdentityFilter>(() => {
+    const q = new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('q');
+    return q ? { q: q.slice(0, 200) } : {};
+  });
   const [identities, setIdentities] = useState<Identity[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [panel, setPanel] = useState<Panel>({ view: 'none' });

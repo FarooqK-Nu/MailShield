@@ -29,8 +29,12 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 |---|---|---|
 | DNS rebinding to the local service | Host allowlist; bind `127.0.0.1` | Done |
 | Cross-origin web page calls the service | Origin allowlist and pairing token (CORS is not authentication) | Done |
-| Token leaves the extension | Service API has no token field; network test | Phase 4 |
-| Forged `Authentication-Results` | Receiver results trusted only for live Gmail retrieval (3) | Phase 2/4 |
+| Token leaves the extension | Token used only inside the service worker; service client has no token parameter; network test over the whole live flow (`apps/extension/test/token-network.test.ts`) | Done |
+| Forged `Authentication-Results` | Receiver results trusted only for live Gmail retrieval (3), and then only Google's topmost result with only Google hops above it (A-15); invariant and fixture tests | Done |
+| Another page or extension drives the side panel's service worker | Requests accepted only from this extension's pages; hints only from `mail.google.com` content scripts; every request validated with Zod | Done |
+| Gmail page markup (or message content) misleads the selection | Hint confirmed with the Gmail API before analysis; differences shown and must be acknowledged | Done |
+| Late result shown on the wrong message | Request numbers and `messageRef` check in the panel reducer; rapid-switch tests | Done |
+| A web page injects a fake report into the dashboard | `#/report` accepts only the extension origin and the window that opened it; result validated against the contract | Done |
 | Message-controlled DNS names probe internal hosts | Validated auth names, TXT only, lookup budget | Done (SPF names later) |
 | Slow or silent DNS stalls analysis | Per-query deadline, 10 s per analysis | Done |
 | Oversized or deeply nested MIME | Size, depth, part and header limits; compressed request bodies refused (11) | Done |
@@ -48,3 +52,5 @@ Trust boundaries are drawn in `architecture.md` §1. Invariant numbers refer to 
 - DNS answers are not validated with DNSSEC; a resolver attacker can influence key lookups.
 - A compromised but authentic account passes authentication and identity checks.
 - A wrong registry entry produces a wrong conclusion; provenance is shown so it can be reviewed.
+- Gmail receiver trust is positional, not cryptographic. If Gmail ever stored a message without adding its own `Authentication-Results`, a sender-written header with a Google hop above it would be trusted.
+- The extension's content-script chunks are web-accessible on `mail.google.com` (a build-tool requirement), so Gmail pages can detect that MailShield is installed.
