@@ -151,21 +151,23 @@ export function Lab({ client, onUnauthorized }: Props) {
       </p>
 
       <section aria-labelledby="builder-title" className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-3">
+        <div className="card space-y-3">
           <h2 id="builder-title" className="font-semibold">
             1. Build a message
           </h2>
           <div className="flex gap-2">
             <button
               type="button"
-              className="button"
+              className="button-secondary"
+              aria-pressed={scenario.preset === 'legitimate'}
               onClick={() => setScenario(LAB_DEFAULTS.legitimate)}
             >
               Alice receives Acme
             </button>
             <button
               type="button"
-              className="button"
+              className="button-secondary"
+              aria-pressed={scenario.preset === 'lookalike'}
               onClick={() => setScenario(LAB_DEFAULTS.lookalike)}
             >
               Eve: look-alike domain
@@ -239,9 +241,9 @@ export function Lab({ client, onUnauthorized }: Props) {
           </fieldset>
         </div>
 
-        <div className="space-y-3">
+        <div className="card space-y-3">
           <h2 className="font-semibold">What Alice sees</h2>
-          <div className="rounded-lg border border-slate-300 p-4 dark:border-slate-700">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
             <div className="flex items-center gap-3">
               <span
                 aria-hidden
@@ -270,7 +272,7 @@ export function Lab({ client, onUnauthorized }: Props) {
           </p>
 
           <h2 className="pt-2 font-semibold">2. Tamper with it</h2>
-          <ul className="space-y-1 text-sm">
+          <ul className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
             {MUTATIONS.map(([id, label, hint]) => (
               <li key={id}>
                 <label className="flex items-start gap-2">
@@ -281,7 +283,8 @@ export function Lab({ client, onUnauthorized }: Props) {
                     onChange={() => patch({ mutations: toggle(scenario.mutations, id) })}
                   />
                   <span>
-                    {label} <span className="text-slate-500 dark:text-slate-400">({hint})</span>
+                    {label}
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">{hint}</span>
                   </span>
                 </label>
               </li>
@@ -307,7 +310,12 @@ export function Lab({ client, onUnauthorized }: Props) {
             </ul>
           </details>
 
-          <button type="button" className="button inline-flex items-center gap-2" onClick={start}>
+          <button
+            type="button"
+            className="button inline-flex w-full items-center justify-center gap-2"
+            disabled={busy}
+            onClick={start}
+          >
             {busy && <LoaderCircle aria-hidden className="size-4 animate-spin" />}
             Send and verify
           </button>
@@ -321,7 +329,7 @@ export function Lab({ client, onUnauthorized }: Props) {
 
       {run && (
         <div className="space-y-6">
-          <section aria-labelledby="notes-title" className="space-y-1">
+          <section aria-labelledby="notes-title" className="card space-y-1">
             <h2 id="notes-title" className="font-semibold">
               What the lab did
             </h2>
@@ -336,9 +344,11 @@ export function Lab({ client, onUnauthorized }: Props) {
           </section>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <EvidenceTrail stages={run.data.result.stages} />
+            <div className="card">
+              <EvidenceTrail stages={run.data.result.stages} />
+            </div>
             <div className="space-y-6">
-              <section aria-labelledby="ba-title" className="space-y-2">
+              <section aria-labelledby="ba-title" className="card space-y-2">
                 <h2 id="ba-title" className="font-semibold">
                   Before and after
                 </h2>
@@ -367,36 +377,44 @@ export function Lab({ client, onUnauthorized }: Props) {
                 <VerdictCard result={run.data.result} />
               </section>
 
-              <section aria-labelledby="hash-title" className="space-y-2 text-sm">
+              <section aria-labelledby="hash-title" className="card space-y-2 text-sm">
                 <h2 id="hash-title" className="font-semibold">
                   Hashes and keys
                 </h2>
                 {sig ? (
                   <>
                     <p>
-                      <strong>Body hash</strong> (changes with every edit to the body). Unchanged
-                      message on top, this message below; differing characters are highlighted.
+                      <strong>Body hash</strong>: changes with every edit to the body. Differing
+                      characters are highlighted.
                     </p>
+                    <dl className="grid grid-cols-[7rem_1fr] gap-x-2 gap-y-1">
+                      <dt className="text-slate-500 dark:text-slate-400">Original</dt>
+                      <dd>
+                        <Diff value={base?.bodyHash.computed} other={sig.bodyHash.computed} />
+                      </dd>
+                      <dt className="text-slate-500 dark:text-slate-400">This message</dt>
+                      <dd>
+                        <Diff value={sig.bodyHash.computed} other={base?.bodyHash.computed} />
+                      </dd>
+                    </dl>
                     <p>
-                      <Diff value={base?.bodyHash.computed} other={sig.bodyHash.computed} />
+                      <strong>Key fingerprint</strong>: identifies the public key, never the
+                      message. It changes only when another key is used.
                     </p>
-                    <p>
-                      <Diff value={sig.bodyHash.computed} other={base?.bodyHash.computed} />
-                    </p>
-                    <p>
-                      <strong>Key fingerprint</strong> (identifies the public key, never the
-                      message). It changes only when another key is used.
-                    </p>
-                    <p>
-                      <Diff value={base?.key?.fingerprint} other={sig.key?.fingerprint} />
-                    </p>
-                    <p>
-                      {sig.key ? (
-                        <Diff value={sig.key.fingerprint} other={base?.key?.fingerprint} />
-                      ) : (
-                        'Not reported: verification stopped before the key was used.'
-                      )}
-                    </p>
+                    <dl className="grid grid-cols-[7rem_1fr] gap-x-2 gap-y-1">
+                      <dt className="text-slate-500 dark:text-slate-400">Original</dt>
+                      <dd>
+                        <Diff value={base?.key?.fingerprint} other={sig.key?.fingerprint} />
+                      </dd>
+                      <dt className="text-slate-500 dark:text-slate-400">This message</dt>
+                      <dd>
+                        {sig.key ? (
+                          <Diff value={sig.key.fingerprint} other={base?.key?.fingerprint} />
+                        ) : (
+                          'Not reported: verification stopped before the key was used.'
+                        )}
+                      </dd>
+                    </dl>
                     <p>
                       Signed headers: {sig.signedHeaders.join(', ') || '(none)'}. Not covered:{' '}
                       {sig.unsignedHeaders.join(', ') || '(none)'}. A change to an uncovered header
@@ -437,7 +455,7 @@ export function Lab({ client, onUnauthorized }: Props) {
           {CHALLENGES.map((c) => (
             <li
               key={c.id}
-              className="rounded-lg border border-slate-300 p-3 text-sm dark:border-slate-700"
+              className={`card p-3 text-sm ${solved.includes(c.id) ? 'border-emerald-600 dark:border-emerald-600' : ''}`}
             >
               <p className="flex items-center gap-2 font-medium">
                 {solved.includes(c.id) && (
