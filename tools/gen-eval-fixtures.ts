@@ -464,6 +464,19 @@ edge(
     keys.esp,
   ),
 );
+edge(
+  'list-parent-signature-strict-dmarc',
+  'Group message signed by the parent domain, strict DMARC',
+  'A real-world pattern (found on an authorised university message): a group sends as lists.acme.example but signs with acme.example, and acme.example publishes DMARC with adkim=s. Strict alignment cannot match a subdomain, so DMARC cannot be confirmed from DKIM alone, although the message is genuine.',
+  'dev',
+  await sign(
+    mail('Acme Students <students@lists.acme.example>', 'Schedule for tomorrow', paragraph),
+    'acme.example',
+    keys.acme,
+  ),
+  'acme-strict-dmarc.json',
+  'legitimate',
+);
 
 // --- DNS zones --------------------------------------------------------------------------------
 const dmarc = (d: string): [string, string] => [`_dmarc.${d}`, 'v=DMARC1; p=reject'];
@@ -486,6 +499,13 @@ writeFileSync(path('dns/eval.json'), json(zone));
 writeFileSync(
   path('dns/globex-timeout.json'),
   json(Object.fromEntries([['s1._domainkey.globex.example', TIMEOUT], dmarc('globex.example')])),
+);
+writeFileSync(
+  path('dns/acme-strict-dmarc.json'),
+  json({
+    's1._domainkey.acme.example': dkimRecord(keys.acme),
+    '_dmarc.acme.example': 'v=DMARC1; p=quarantine; adkim=s; aspf=s',
+  }),
 );
 writeFileSync(
   path('dns/acme-bad-key.json'),
